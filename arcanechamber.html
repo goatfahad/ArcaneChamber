@@ -1,0 +1,2657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcane Chamber - An Immersive Text Adventure</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* --- Magical Theme Colors --- */
+            --text-color: #e0e0e0; /* Lighter grey for text */
+            --bg-color: #1a122a; /* Deep purple background */
+            --primary-color: #8a2be2; /* Vibrant Purple */
+            --secondary-color: #00bcd4; /* Cyan / Teal */
+            --accent-color: #ffeb3b; /* Gold / Yellow Accent */
+            --success-color: #4caf50; /* Mystical Green */
+            --danger-color: #f44336; /* Warning Red */
+            --muted-color: #757575; /* Muted grey */
+            --border-color: #4a3f5e; /* Darker purple/grey border */
+
+            /* --- Resource Specific Colors (Examples) --- */
+            --mana-motes-color: var(--secondary-color); /* Teal for basic mana */
+            --ether-wisps-color: #ffffff; /* White/Silver for ether */
+            --crystal-shards-color: #ba68c8; /* Light Purple for crystals */
+            --soul-fragments-color: var(--danger-color); /* Red for souls */
+            --shadow-essence-color: #616161; /* Dark Grey for shadow */
+            --infused-stone-color: #795548; /* Brownish for stone */
+            --arcane-dust-color: var(--accent-color); /* Gold for dust */
+            --starlight-essence-color: var(--primary-color); /* Main Purple for starlight */
+            --spell-component-color: var(--success-color); /* Green for components */
+            --rune-color: #ff9800; /* Orange for runes */
+        }
+
+        @keyframes manaPulse {
+            0% { text-shadow: 0 0 4px rgba(0, 188, 212, 0.4); }
+            50% { text-shadow: 0 0 10px rgba(0, 188, 212, 0.7); }
+            100% { text-shadow: 0 0 4px rgba(0, 188, 212, 0.4); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+
+        @keyframes breathe {
+            0% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.7; transform: scale(1); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shake { /* Keep shake for emphasis if needed */
+            0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inconsolata', monospace;
+            min-height: 100vh;
+            transition: background-color 0.5s, color 0.5s;
+            cursor: default;
+            overflow-x: hidden;
+             /* Add subtle pattern or gradient */
+            background-image: radial-gradient(circle at top left, rgba(138, 43, 226, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom right, rgba(0, 188, 212, 0.1), transparent 40%);
+        }
+
+        body.high-contrast { /* Keep high contrast mode */
+            --text-color: #ffffff; --bg-color: #000000; --border-color: #ffffff;
+            background-image: none;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        #game-container { opacity: 0; transition: opacity 0.5s ease-in-out; }
+        #game-container.visible { opacity: 1; }
+
+        .mana-active { color: var(--primary-color); animation: manaPulse 2.5s infinite; }
+
+        /* Button Styling */
+        .btn {
+            background-color: rgba(0,0,0,0.2); /* Slightly transparent dark background */
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inconsolata', monospace;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            background-color: rgba(0, 188, 212, 0.1); /* Cyan highlight on hover */
+            box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+        }
+        .btn:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .btn::after { /* Ripple effect on click */
+            content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+            background: rgba(255, 255, 255, 0.3); opacity: 0; border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%); transform-origin: 50% 50%;
+        }
+        .btn:focus:not(:active)::after { animation: ripple 0.6s ease-out; }
+
+        .btn-primary { border-color: var(--primary-color); color: var(--primary-color); }
+        .btn-primary:hover { background-color: rgba(138, 43, 226, 0.15); box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); }
+        .btn-secondary { border-color: var(--secondary-color); color: var(--secondary-color); }
+        .btn-secondary:hover { background-color: rgba(0, 188, 212, 0.15); box-shadow: 0 0 10px rgba(0, 188, 212, 0.5); }
+        /* ... other button types (success, danger) with potentially updated hover effects ... */
+        .btn-disabled { border-color: var(--muted-color); color: var(--muted-color); cursor: not-allowed; background-color: rgba(0,0,0,0.1); box-shadow: none; }
+        .btn-disabled:hover { background-color: rgba(0,0,0,0.1); box-shadow: none; border-color: var(--muted-color); color: var(--muted-color); }
+
+        /* Progress Bars */
+        .progress-container { height: 6px; background-color: rgba(0,0,0,0.3); border-radius: 3px; margin: 0.5rem 0; overflow: hidden; border: 1px solid var(--border-color); }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); border-radius: 2px; transition: width 0.3s ease; }
+        .progress-bar.research { background: linear-gradient(90deg, var(--accent-color), var(--success-color)); }
+
+
+        /* Resource Display */
+        .resource-container { border: 1px solid var(--border-color); border-radius: 0.3rem; padding: 0.6rem; margin-bottom: 0.6rem; transition: all 0.3s; background-color: rgba(0,0,0,0.1); }
+        .resource-container:hover { border-color: var(--secondary-color); background-color: rgba(0, 188, 212, 0.05); box-shadow: 0 0 5px rgba(0, 188, 212, 0.3); }
+        .resource-name { font-weight: bold; display: flex; align-items: center; }
+        .resource-name i { margin-right: 0.6rem; width: 1.1em; text-align: center; }
+        .resource-value { text-align: right; font-family: 'Source Sans Pro', sans-serif; font-size: 1.1em; }
+
+        /* Notification */
+        .notification { position: fixed; top: 20px; right: 20px; background-color: rgba(26, 18, 42, 0.9); color: var(--text-color); padding: 1rem; border-radius: 0.25rem; border-left: 4px solid var(--primary-color); z-index: 1000; opacity: 0; transform: translateX(100%); transition: all 0.3s ease-in-out; max-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .notification.show { opacity: 1; transform: translateX(0); }
+        .notification-title { font-weight: bold; margin-bottom: 0.5rem; color: var(--accent-color); }
+
+        /* Room Display */
+        .room {
+            min-height: 200px; border: 1px solid var(--border-color); border-radius: 0.25rem;
+            padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden;
+            background-color: rgba(0,0,0,0.15);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+        }
+        .room-title { font-size: 1.6rem; margin-bottom: 1rem; font-weight: bold; color: var(--primary-color); text-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+        .room-description { margin-bottom: 1.5rem; line-height: 1.6; font-size: 1.1em; }
+
+        /* Rune/Mana Effect (Replacing Fire Effect) */
+        .rune-glow-effect {
+            position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+            width: 80%; height: 120px;
+            background: radial-gradient(ellipse at center bottom, rgba(0, 188, 212, 0.35) 0%, rgba(0, 188, 212, 0) 70%);
+            animation: breathe 4s infinite ease-in-out;
+            pointer-events: none; opacity: 0; transition: opacity 1s;
+            border-radius: 50%;
+        }
+        .chamber-active .rune-glow-effect { opacity: 1; } /* Use chamber-active class */
+
+
+        /* Event Log */
+        .event-log { height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.4; background-color: rgba(0,0,0,0.1); }
+        .event-log::-webkit-scrollbar { width: 8px; }
+        .event-log::-webkit-scrollbar-track { background: var(--bg-color); }
+        .event-log::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 4px; border: 2px solid var(--bg-color); }
+        .event-log-item { margin-bottom: 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px dashed var(--border-color); animation: fadeIn 0.5s ease-in-out; }
+        .event-log-item:last-child { border-bottom: none; }
+        .event-timestamp { color: var(--muted-color); font-size: 0.85rem; margin-right: 0.5em; }
+
+        /* Map Container */
+        .map-container { height: 350px; border: 1px solid var(--border-color); border-radius: 0.25rem; margin-bottom: 1rem; position: relative; overflow: hidden; display: none; background-color: rgba(0,0,0,0.2); }
+        .map-container.visible { display: block; }
+        .map-grid { display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); height: 100%; width: 100%; }
+        .map-cell { border: 1px solid rgba(138, 43, 226, 0.2); /* Purple grid lines */ position: relative; transition: all 0.2s; }
+        .map-cell.unexplored { background-color: rgba(0, 0, 0, 0.8); }
+        .map-cell.current { border: 2px solid var(--accent-color); /* Gold border for current */ box-shadow: 0 0 10px var(--accent-color); z-index: 10;}
+        .map-cell.visited { background-color: rgba(138, 43, 226, 0.1); } /* Visited cells */
+        .map-cell.discovered { background-color: rgba(0, 188, 212, 0.1); } /* Discovered but not visited */
+        .map-cell.poi { background-color: rgba(76, 175, 80, 0.2); border: 1px solid var(--success-color); } /* Point of Interest */
+        .map-cell-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1rem; color: var(--text-color); opacity: 0.8; }
+
+        /* Tabs */
+        .tab-container { margin-bottom: 1rem; }
+        .tab-buttons { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+        .tab-button { padding: 0.7rem 1.2rem; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: all 0.2s; color: var(--muted-color); }
+        .tab-button:hover { color: var(--secondary-color); }
+        .tab-button.active { border-color: var(--border-color); border-bottom: 1px solid var(--bg-color); color: var(--primary-color); background-color: rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+
+        /* Combat Styles */
+        .combat-container { border: 1px solid var(--danger-color); border-radius: 0.25rem; padding: 1rem; margin-bottom: 1rem; background-color: rgba(244, 67, 54, 0.05); }
+        .combat-enemy { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border-color); }
+        .combat-enemy-info { display: flex; flex-direction: column; }
+        .combat-enemy-name { font-weight: bold; margin-bottom: 0.25rem; color: var(--danger-color); font-size: 1.2em; }
+        .combat-enemy-health-bar { width: 150px; height: 8px; background-color: var(--border-color); border-radius: 4px; margin-right: 0.5rem; overflow: hidden; }
+        .combat-enemy-health-value { height: 100%; background-color: var(--danger-color); border-radius: 4px; transition: width 0.3s ease; }
+        .combat-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+        .combat-log { margin-top: 1rem; max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; font-size: 0.9rem; background-color: rgba(0,0,0,0.1); }
+        .combat-log-item { margin-bottom: 0.3rem; animation: fadeIn 0.3s ease-in-out; }
+        .combat-log-item.player { color: var(--secondary-color); } /* Player actions in cyan */
+        .combat-log-item.enemy { color: var(--danger-color); } /* Enemy actions in red */
+        .combat-log-item.system { color: var(--success-color); } /* System messages in green */
+        .combat-log-item.info { color: var(--accent-color); } /* Info messages in gold */
+
+        /* Achievements */
+        .achievement { border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; background-color: rgba(0,0,0,0.1); }
+        .achievement.unlocked { border-left: 4px solid var(--accent-color); background-color: rgba(255, 235, 59, 0.05); }
+        .achievement.locked { filter: grayscale(80%); opacity: 0.6; }
+        .achievement-icon { width: 45px; height: 45px; background-color: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-size: 1.5em; }
+        .achievement.unlocked .achievement-icon { background-color: var(--accent-color); color: var(--bg-color); }
+        .achievement-info { flex: 1; }
+        .achievement-name { font-weight: bold; margin-bottom: 0.25rem; color: var(--accent-color); }
+        .achievement.locked .achievement-name { color: var(--muted-color); }
+        .achievement-description { font-size: 0.9rem; color: var(--muted-color); }
+        .achievement.unlocked .achievement-description { color: var(--text-color); }
+
+
+        /* Modals */
+        .modal-backdrop { /* Kept same structure, colors adapt */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(26, 18, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: var(--bg-color); border: 1px solid var(--accent-color); box-shadow: 0 0 20px rgba(255, 235, 59, 0.3); border-radius: 0.25rem; padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-backdrop.show .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); }
+        .modal-title { font-weight: bold; font-size: 1.5rem; color: var(--primary-color); }
+        .modal-close { background: none; border: none; color: var(--muted-color); cursor: pointer; font-size: 2rem; padding: 0; line-height: 1; transition: color 0.2s; }
+        .modal-close:hover { color: var(--accent-color); }
+        .modal-body { margin-bottom: 1rem; line-height: 1.6; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); }
+
+
+        /* Loading Screen */
+        .loading-screen { /* Kept same structure, colors adapt */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease-in-out;
+        }
+        .loading-text { font-size: 2.5rem; margin-bottom: 2rem; opacity: 0.8; color: var(--primary-color); text-shadow: 0 0 8px rgba(138, 43, 226, 0.5); }
+        .loading-dots { display: flex; }
+        .loading-dot { width: 14px; height: 14px; border-radius: 50%; background-color: var(--secondary-color); margin: 0 7px; animation: loading-dot-animation 1.4s infinite ease-in-out both; }
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes loading-dot-animation { 0%, 80%, 100% { transform: scale(0); box-shadow: none; } 40% { transform: scale(1.1); box-shadow: 0 0 10px var(--secondary-color); } }
+
+
+        /* Ripple Effect */
+        @keyframes ripple { /* Kept same structure */
+            0% { transform: scale(0, 0) translate(-50%, -50%); opacity: 0.5; } 20% { transform: scale(25, 25) translate(-50%, -50%); opacity: 0.5; } 100% { opacity: 0; transform: scale(40, 40) translate(-50%, -50%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) { /* Kept same structure */
+            .container { padding: 0.5rem; } .btn { padding: 0.4rem 0.8rem; font-size: 0.9rem; } .room { min-height: 150px; } .room-title { font-size: 1.3rem; } .event-log, .combat-log { height: 140px; } .map-container { height: 280px; } .tab-button { padding: 0.5rem 0.8rem; font-size: 0.9rem; }
+        }
+        /* Accessibility */
+        @media (prefers-reduced-motion) { * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; } }
+        .screen-reader-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+        /* Settings Styles */
+        .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px dashed var(--border-color); }
+        .settings-label { font-weight: bold; color: var(--secondary-color); }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 24px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: var(--text-color); transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: var(--primary-color); }
+        input:checked + .toggle-slider:before { transform: translateX(26px); background-color: var(--accent-color); }
+        .volume-control { display: flex; align-items: center; }
+        .volume-slider { width: 120px; height: 6px; -webkit-appearance: none; background: linear-gradient(90deg, var(--border-color), var(--secondary-color)); border-radius: 3px; outline: none; cursor: pointer; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background-color: var(--accent-color); cursor: pointer; border: 1px solid var(--bg-color); }
+        .volume-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background-color: var(--accent-color); cursor: pointer; border: none; }
+
+        /* Sidebar */
+        .sidebar-toggle { position: fixed; top: 15px; right: 15px; z-index: 100; background-color: rgba(26, 18, 42, 0.8); color: var(--text-color); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border-color); transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .sidebar-toggle:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .sidebar { position: fixed; top: 0; right: -320px; width: 320px; height: 100%; background-color: var(--bg-color); border-left: 1px solid var(--border-color); z-index: 999; transition: right 0.3s ease; padding: 1.5rem; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.4); }
+        .sidebar.open { right: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar-title { font-weight: bold; font-size: 1.5rem; color: var(--primary-color); }
+        .sidebar-close { /* Same as modal close */ }
+
+        /* Choice Buttons */
+        .choice-container { margin-top: 1.5rem; }
+        .choice-btn { display: block; width: 100%; text-align: left; margin-bottom: 0.7rem; animation: fadeIn 0.4s ease-in-out; font-size: 1.05em; padding: 0.7rem 1.2rem; }
+
+        /* Status Effects */
+        .status-effect { display: inline-block; border-radius: 0.25rem; padding: 0.2rem 0.5rem; margin-right: 0.4rem; font-size: 0.85rem; margin-bottom: 0.4rem; border: 1px solid; }
+        .status-effect.buff { background-color: rgba(76, 175, 80, 0.2); border-color: var(--success-color); color: var(--success-color); }
+        .status-effect.debuff { background-color: rgba(244, 67, 54, 0.2); border-color: var(--danger-color); color: var(--danger-color); }
+        .status-effect.neutral { background-color: rgba(0, 188, 212, 0.2); border-color: var(--secondary-color); color: var(--secondary-color); }
+
+        /* Keybinding Hint */
+        .keybinding { display: inline-block; background-color: var(--border-color); color: var(--accent-color); padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.8rem; margin-left: 0.5rem; border: 1px solid rgba(255,235,59, 0.3); }
+
+        /* Visual Effects (e.g., Damage Text) */
+        .visual-effect { position: absolute; pointer-events: none; z-index: 999; }
+        .damage-text { position: absolute; color: var(--danger-color); font-weight: bold; pointer-events: none; animation: floatUpAndFade 1.5s forwards; font-size: 1.2em; text-shadow: 1px 1px 2px black; }
+        .heal-text { position: absolute; color: var(--success-color); font-weight: bold; pointer-events: none; animation: floatUpAndFade 1.5s forwards; font-size: 1.2em; text-shadow: 1px 1px 2px black; }
+        @keyframes floatUpAndFade { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-30px) scale(0.8); } }
+
+        /* Shimmer effect for special items/buttons */
+        .shimmer-effect {
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen">
+        <div class="loading-text" aria-live="polite">Arcane Chamber</div>
+        <div class="loading-dots" aria-hidden="true">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+    </div>
+
+    <!-- Notifications Area -->
+    <div id="notifications" class="fixed top-5 right-5 z-50"></div>
+
+    <!-- Sidebar Toggle Button -->
+    <div class="sidebar-toggle" aria-label="Open menu" id="sidebar-toggle-btn">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Oracle</div> <!-- Renamed Menu -->
+            <button class="sidebar-close" aria-label="Close menu" id="sidebar-close-btn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <button class="btn btn-secondary w-full mb-2" id="btn-save-game">
+                <i class="fas fa-save mr-2"></i> Inscribe Moment (Save)
+            </button>
+            <button class="btn btn-secondary w-full mb-2" id="btn-load-game">
+                <i class="fas fa-folder-open mr-2"></i> Recall Moment (Load)
+            </button>
+            <button class="btn btn-secondary w-full mb-2" id="btn-settings">
+                <i class="fas fa-cog mr-2"></i> Adjust Reality (Settings)
+            </button>
+            <button class="btn btn-secondary w-full mb-2" id="btn-achievements">
+                <i class="fas fa-star mr-2"></i> Echoes of Fate (Achievements)
+            </button>
+             <button class="btn btn-secondary w-full mb-2" id="btn-grimoire">
+                 <i class="fas fa-book-open mr-2"></i> Grimoire (Spells/Info) <!-- New Button Stub -->
+             </button>
+            <button class="btn btn-danger w-full mb-2 mt-4" id="btn-restart">
+                <i class="fas fa-redo mr-2"></i> Unravel Reality (Restart)
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="container mx-auto p-4" id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center py-16">
+            <h1 class="text-4xl mb-8 mana-active">Arcane Chamber</h1>
+            <p class="mb-8 text-xl max-w-lg mx-auto text-gray-400">You float in a silent, featureless void. A faint, inner warmth is all you perceive. Your thoughts feel sluggish, contained.</p>
+            <button id="btn-start-game" class="btn btn-primary text-lg px-8 py-4 shimmer-effect">
+                Focus <span class="keybinding">Enter</span>
+            </button>
+        </div>
+
+        <!-- Main Game Area (Initially Hidden) -->
+        <div id="main-game" class="hidden">
+            <!-- Chamber Description Area -->
+            <div class="mb-6">
+                <div class="room" id="chamber-room"> <!-- Changed ID -->
+                    <div class="room-title" id="chamber-title">Featureless Void</div> <!-- Changed ID -->
+                    <div class="room-description" id="chamber-description">The void presses in. Only a faint inner warmth persists.</div> <!-- Changed ID -->
+                    <div id="chamber-choices" class="choice-container"></div> <!-- Changed ID -->
+                    <div class="rune-glow-effect"></div> <!-- Changed class -->
+                </div>
+            </div>
+
+            <!-- Tabbed Interface -->
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <div class="tab-button active" data-tab="resources">Essence</div> <!-- Renamed Tab -->
+                    <div class="tab-button" data-tab="nexus">Nexus</div> <!-- Replaced Village Tab -->
+                    <div class="tab-button" data-tab="exploration">Void Walk</div> <!-- Renamed Tab -->
+                    <div class="tab-button" data-tab="infusion">Infusion</div> <!-- Replaced Crafting Tab -->
+                    <div class="tab-button" data-tab="spells">Spells</div> <!-- New Tab Stub -->
+                    <div class="tab-button" data-tab="research">Research</div> <!-- New Tab Stub -->
+                    <div class="tab-button" data-tab="events">Echoes</div> <!-- Renamed Tab -->
+                </div>
+
+                <!-- Resources Tab -->
+                <div class="tab-content active" id="tab-resources">
+                     <div id="resources-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Resources will be dynamically added here -->
+                        <div class="resource-container placeholder" data-resource="mana_motes">
+                            <div class="flex justify-between items-center">
+                                <div class="resource-name">
+                                    <i class="fas fa-sparkles" style="color: var(--mana-motes-color)"></i> Mana Motes
+                                </div>
+                                <div class="resource-value">0</div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <div>+<span id="mana_motes-income">0</span>/s</div>
+                                <div><span id="mana_motes-storage">100</span> max</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-4">
+                        <button id="btn-gather-motes" class="btn btn-primary">
+                            Gather Motes <span class="keybinding">G</span>
+                        </button>
+                        <button id="btn-channel-mana" class="btn btn-secondary">
+                            Channel Mana <span class="keybinding">C</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nexus Tab (Village Replacement) -->
+                <div class="tab-content" id="tab-nexus">
+                     <div id="nexus-constructs" class="mb-6">
+                         <div class="text-lg mb-2">Nexus Constructs</div>
+                         <div id="constructs-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <!-- Constructs will be dynamically added here -->
+                              <p class="text-gray-500 text-sm italic">The Nexus is dormant. Focus your will to shape reality.</p>
+                         </div>
+                     </div>
+
+                     <div id="nexus-attunement" class="mb-6">
+                         <div class="text-lg mb-2">Attuned Souls (<span id="population">0</span>/<span id="max-population">0</span>)</div> <!-- Kept population concept for now -->
+                         <div class="progress-container">
+                             <div class="progress-bar" id="population-bar" style="width: 0%"></div>
+                         </div>
+                         <div id="attunement-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                             <!-- Worker assignment replacement -->
+                             <p class="text-gray-500 text-sm italic">No souls are currently attuned to tasks.</p>
+                         </div>
+                     </div>
+                </div>
+
+                <!-- Exploration Tab -->
+                <div class="tab-content" id="tab-exploration">
+                     <div class="flex flex-col md:flex-row gap-6">
+                         <!-- Map Area -->
+                         <div class="flex-1">
+                             <button id="btn-toggle-map" class="btn btn-secondary mb-3">
+                                 <i class="fas fa-map-marked-alt mr-2"></i> Toggle Void Map
+                             </button>
+                             <div id="map-container" class="map-container">
+                                 <div id="map-grid" class="map-grid"></div>
+                             </div>
+                         </div>
+
+                         <!-- Status & Actions Area -->
+                         <div class="w-full md:w-1/3">
+                            <div id="exploration-status" class="mb-4 p-4 border border-gray-700 rounded bg-black bg-opacity-10">
+                                 <div class="text-lg mb-2 font-semibold">Current Locus: <span id="current-location" class="text-primary-color">Nexus Core</span></div>
+                                 <div id="location-description" class="mb-3 text-gray-400 text-sm">The central point of your manifested reality. Relatively stable.</div>
+                                 <div id="exploration-buttons">
+                                     <button id="btn-explore" class="btn btn-primary mb-2 mr-2">
+                                         Probe the Void <span class="keybinding">X</span>
+                                     </button>
+                                     <button id="btn-return-nexus" class="btn btn-secondary mb-2 hidden"> <!-- Initially hidden -->
+                                         Return to Nexus <span class="keybinding">N</span>
+                                     </button>
+                                 </div>
+                             </div>
+                             <!-- Encounter Area -->
+                             <div id="exploration-encounter" style="display: none;">
+                                 <div class="combat-container">
+                                     <div id="combat-enemy-container"></div>
+                                     <div id="combat-actions" class="combat-actions">
+                                         <button class="btn btn-danger" data-action="attack">
+                                             Arcane Bolt <span class="keybinding">A</span>
+                                         </button>
+                                         <button class="btn btn-secondary" data-action="defend">
+                                             Mana Shield <span class="keybinding">D</span>
+                                         </button>
+                                         <button class="btn btn-primary" data-action="spell">
+                                             Cast Spell <span class="keybinding">S</span> <!-- Changed Special -->
+                                         </button>
+                                         <button class="btn btn-success" data-action="item">
+                                             Use Conduit <span class="keybinding">I</span> <!-- Changed Item -->
+                                         </button>
+                                         <button class="btn btn-secondary" data-action="flee">
+                                             Phase Out <span class="keybinding">R</span> <!-- Changed Flee -->
+                                         </button>
+                                     </div>
+                                     <div class="combat-log" id="combat-log"></div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+                <!-- Infusion Tab (Crafting Replacement) -->
+                <div class="tab-content" id="tab-infusion">
+                    <div class="text-lg mb-3">Infusion Altar</div>
+                    <div id="infusion-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                         <!-- Infusable items/recipes will be added here -->
+                         <p class="text-gray-500 text-sm italic">The Altar awaits patterns and essence.</p>
+                    </div>
+                </div>
+
+                <!-- Spells Tab (Stub) -->
+                 <div class="tab-content" id="tab-spells">
+                     <div class="text-lg mb-3">Known Incantations</div>
+                     <div id="spells-container">
+                         <p class="text-gray-400 italic">Your mind is blank. Seek knowledge or inspiration.</p>
+                         <!-- Spell list and casting interface would go here -->
+                     </div>
+                 </div>
+
+                 <!-- Research Tab (Stub) -->
+                 <div class="tab-content" id="tab-research">
+                     <div class="text-lg mb-3">Arcane Research</div>
+                     <div id="research-container">
+                         <p class="text-gray-400 italic">Unravel the mysteries of the chamber and the void.</p>
+                         <!-- Research tree / projects would go here -->
+                         <div class="mt-4 p-3 border border-dashed border-gray-600 rounded">
+                            <h4 class="font-semibold text-secondary-color mb-2">Example Research Project (Stub)</h4>
+                            <p class="text-sm mb-2">Unlock Basic Runic Sight</p>
+                            <div class="flex text-xs gap-2 mb-2"><span>Cost:</span><span>10 Motes</span><span>5 Ether</span></div>
+                            <div class="progress-container"><div class="progress-bar research" style="width: 30%"></div></div>
+                            <button class="btn btn-sm btn-success mt-2 btn-disabled" disabled>Research</button>
+                         </div>
+                     </div>
+                 </div>
+
+                <!-- Events Tab -->
+                <div class="tab-content" id="tab-events">
+                    <div class="text-lg mb-3">Echoes of Time</div>
+                    <div class="event-log" id="event-log">
+                        <!-- Event log messages will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End Main Game -->
+    </div> <!-- End Container -->
+
+    <!-- Modals -->
+    <div class="modal-backdrop" id="settings-modal">
+        <div class="modal-content"> <div class="modal-header"> <div class="modal-title">Adjust Reality</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <!-- Settings Rows --> <div class="settings-row"> <div class="settings-label">Auditory Echoes (SFX)</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-sound-effects" checked> <span class="toggle-slider round"></span> </label> </div> <div class="settings-row"> <div class="settings-label">Ambient Resonance (Music)</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-music" checked> <span class="toggle-slider round"></span> </label> </div> <div class="settings-row"> <div class="settings-label">Resonance Level (Volume)</div> <div class="volume-control"> <input type="range" min="0" max="100" value="70" class="volume-slider" id="volume-slider"> <span class="ml-3 text-sm" id="volume-value">70%</span> </div> </div> <div class="settings-row"> <div class="settings-label"> Stark Contrast Mode</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-high-contrast"> <span class="toggle-slider round"></span> </label> </div> <div class="settings-row"> <div class="settings-label"> Oracular Vision (Screen Reader)</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-screen-reader"> <span class="toggle-slider round"></span> </label> </div> <div class="settings-row"> <div class="settings-label"> Manifest Visuals</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-visual-effects" checked> <span class="toggle-slider round"></span> </label> </div> <div class="settings-row"> <div class="settings-label"> Auto-Inscribe Moments</div> <label class="toggle-switch"> <input type="checkbox" id="toggle-autosave" checked> <span class="toggle-slider round"></span> </label> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" data-close-modal>Seal Changes</button> </div> </div>
+    </div>
+    <div class="modal-backdrop" id="save-modal">
+         <div class="modal-content"> <div class="modal-header"> <div class="modal-title">Inscribe Moment</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <p class="mb-4 text-sm text-gray-400">Choose a memory slot to inscribe the current reality.</p> <div id="save-slots" class="space-y-2"> <!-- Save slots loaded here --> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" data-close-modal>Cancel</button> </div> </div>
+    </div>
+    <div class="modal-backdrop" id="load-modal">
+         <div class="modal-content"> <div class="modal-header"> <div class="modal-title">Recall Moment</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <p class="mb-4 text-sm text-gray-400">Choose a memory to recall and reshape reality.</p> <div id="load-slots" class="space-y-2"> <!-- Load slots loaded here --> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" data-close-modal>Cancel</button> </div> </div>
+    </div>
+    <div class="modal-backdrop" id="achievements-modal">
+         <div class="modal-content"> <div class="modal-header"> <div class="modal-title">Echoes of Fate</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <div id="achievements-container" class="space-y-3"> <!-- Achievements loaded here --> </div> </div> <div class="modal-footer"> <button class="btn btn-secondary" data-close-modal>Close</button> </div> </div>
+    </div>
+    <div class="modal-backdrop" id="restart-modal">
+        <div class="modal-content"> <div class="modal-header"> <div class="modal-title text-danger-color">Unravel Reality?</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <p>Are you certain you wish to unravel this timeline? All progress since the last inscription will be lost to the void.</p> </div> <div class="modal-footer"> <button class="btn btn-danger" id="btn-restart-confirm">Unravel</button> <button class="btn btn-secondary" data-close-modal>Cancel</button> </div> </div>
+    </div>
+     <div class="modal-backdrop" id="grimoire-modal"> <!-- Grimoire Modal Stub -->
+         <div class="modal-content"> <div class="modal-header"> <div class="modal-title">Grimoire</div> <button class="modal-close" data-close-modal>&times;</button> </div> <div class="modal-body"> <p class="text-gray-400 italic">Pages lie empty, waiting for knowledge...</p> <!-- Spells, lore, bestiary etc. could go here --> </div> <div class="modal-footer"> <button class="btn btn-secondary" data-close-modal>Close</button> </div> </div>
+     </div>
+
+
+    <script>
+        // --- Game State ---
+        // WARNING: This is a heavily modified structure. Many systems are placeholders
+        // and will require significant implementation. Expect inconsistencies.
+        const gameState = {
+            started: false,
+            version: '1.0.0-alpha-magic',
+            tick: 0,
+            lastTick: Date.now(),
+            tickInterval: 1000, // 1 second per tick
+
+            chamberStatus: 0, // 0 = void, 1 = flickering rune, 2 = stable rune, 3 = radiant nexus
+            chamberStability: 0, // Like temperature, 0 = unstable void, 4 = stable nexus
+
+            // Entities / Story flags (examples)
+            nexusStabilized: false, // Was 'builder' flag
+            echoPresence: false, // Was 'stranger' flag
+            echoIntegrity: 0, // Was 'strangerHealth'
+
+            storyline: 0, // Progress marker
+
+            // --- Magical Resources ---
+            resources: {
+                mana_motes: 0,
+                ether_wisps: 0,
+                crystal_shards: 0,
+                soul_fragments: 0, // Example advanced resource
+                shadow_essence: 0, // Example advanced resource
+                infused_stone: 0, // Example building resource
+                arcane_dust: 0, // Example crafting resource
+                starlight_essence: 0, // Example rare resource
+                // Remove survival resources like fur, meat, scales, teeth, leather, medicine, bullets, charm
+                // Keep alien_alloy maybe rethemed -> void_metal ?
+                void_metal: 0,
+            },
+            resourceIncome: { // Per second income
+                mana_motes: 0,
+                ether_wisps: 0,
+                crystal_shards: 0,
+                // Initialize others to 0
+            },
+            resourceStorage: {
+                mana_motes: 100,
+                ether_wisps: 50,
+                crystal_shards: 50,
+                soul_fragments: 20,
+                shadow_essence: 20,
+                infused_stone: 100,
+                arcane_dust: 50,
+                starlight_essence: 10,
+                void_metal: 10,
+            },
+
+            // --- Nexus Constructs (Buildings) ---
+            constructs: [], // Replaces buildings array
+
+            // --- Attuned Souls (Workers/Population) ---
+            attunedSouls: [], // Replaces workers array
+            population: 0, // Keep concept for now, maybe 'attuned essence'?
+            maxPopulation: 0,
+
+            // --- Exploration ---
+            exploration: {
+                map: [], // 15x15 grid
+                currentLocation: { x: 7, y: 7 }, // Center is Nexus Core
+                visited: [{ x: 7, y: 7 }],
+                discovered: [],
+                mapRevealed: false, // Maybe an unlockable spell/research?
+                returning: false, // Returning to Nexus
+                inCombat: false,
+                currentEnemy: null,
+            },
+
+            // --- Player Arcane State ---
+            player: {
+                health: 100, // Maybe 'Integrity' or 'Focus'
+                maxHealth: 100,
+                mana: 50, // Player's personal mana pool?
+                maxMana: 50,
+                spellPower: 5, // Replaces attack
+                resistance: 1, // Replaces defense
+                focus: null, // Replaces weapon (wand, crystal, etc.)
+                ward: null, // Replaces armor (robes, amulet, etc.)
+                effects: [], // Status effects (burning, chilled, hastened, weakened)
+            },
+
+            // --- Infused Items & Spells ---
+            inventory: [], // Infused items, components, catalysts
+            knownSpells: [], // Learned spells
+            researchProgress: {}, // Key: researchId, Value: progress
+
+            events: [], // Log of past events
+            achievements: [], // Achievements state
+
+            gameTime: 0, // In-game time in minutes or arbitrary ticks
+            gameSpeed: 1, // Time multiplier
+
+            settings: {
+                soundEffects: true,
+                music: true,
+                volume: 0.7,
+                highContrast: false,
+                screenReader: false,
+                visualEffects: true,
+                autosave: true
+            }
+        };
+
+        // --- Resource Information ---
+        // Includes new magical resources
+        const resourceInfo = {
+            mana_motes: { name: 'Mana Motes', icon: 'fa-sparkles', color: 'var(--mana-motes-color)' },
+            ether_wisps: { name: 'Ether Wisps', icon: 'fa-ghost', color: 'var(--ether-wisps-color)' },
+            crystal_shards: { name: 'Crystal Shards', icon: 'fa-gem', color: 'var(--crystal-shards-color)' },
+            soul_fragments: { name: 'Soul Fragments', icon: 'fa-heart-crack', color: 'var(--soul-fragments-color)' },
+            shadow_essence: { name: 'Shadow Essence', icon: 'fa-cloud', color: 'var(--shadow-essence-color)' },
+            infused_stone: { name: 'Infused Stone', icon: 'fa-cube', color: 'var(--infused-stone-color)' },
+            arcane_dust: { name: 'Arcane Dust', icon: 'fa-star', color: 'var(--arcane-dust-color)' },
+            starlight_essence: { name: 'Starlight Essence', icon: 'fa-star-of-life', color: 'var(--starlight-essence-color)' },
+            void_metal: { name: 'Void Metal', icon: 'fa-meteor', color: '#ababab' } // Replaced alien alloy
+            // Remove old resources like wood, fur, meat etc.
+        };
+
+        // --- Nexus Construct Templates (Building Examples) ---
+        const constructTemplates = [
+            {
+                id: 'mana_conduit', name: 'Mana Conduit', description: 'channels ambient mana, increasing mote storage',
+                cost: { infused_stone: 20, mana_motes: 10 }, maxBuilt: 10,
+                effects: { resourceStorage: { mana_motes: 20 } }, requires: { nexusStabilized: true }
+            },
+            {
+                id: 'resonant_shelter', name: 'Resonant Shelter', description: 'attunes space, allowing souls to manifest',
+                cost: { infused_stone: 30, crystal_shards: 5 }, maxBuilt: 10,
+                effects: { maxPopulation: 2 }, requires: { nexusStabilized: true }
+            },
+            {
+                id: 'arcane_workbench', name: 'Arcane Workbench', description: 'allows basic infusion and crafting of components',
+                cost: { infused_stone: 40, arcane_dust: 10 }, maxBuilt: 1,
+                effects: { infusionTier: 1 }, requires: { nexusStabilized: true, constructs: { mana_conduit: 1 } }
+            },
+            {
+                 id: 'aetheric_condenser', name: 'Aetheric Condenser', description: 'gathers and refines Ether Wisps from the void',
+                 cost: { infused_stone: 30, mana_motes: 20 }, maxBuilt: 3,
+                 effects: { allowsWorker: 'wisp_gatherer' }, requires: { nexusStabilized: true, constructs: { resonant_shelter: 2 } }
+             },
+             {
+                 id: 'crystal_resonator', name: 'Crystal Resonator', description: 'amplifies ambient crystal energy',
+                 cost: { infused_stone: 50, crystal_shards: 15 }, maxBuilt: 3,
+                 effects: { allowsWorker: 'shard_harvester' }, requires: { nexusStabilized: true, constructs: { resonant_shelter: 3 } }
+            },
+             {
+                 id: 'runeforge', name: 'Runeforge', description: 'allows shaping of runic patterns and potent infusions',
+                 cost: { infused_stone: 80, soul_fragments: 5, mana_motes: 50 }, maxBuilt: 1,
+                 effects: { infusionTier: 2 }, requires: { nexusStabilized: true, constructs: { arcane_workbench: 1 } }
+             },
+            // ... add more constructs like Astral Beacon (trading), Scrying Pool (research), etc.
+        ];
+
+        // --- Attuned Soul Templates (Worker Examples) ---
+        const soulTemplates = [
+            {
+                id: 'mote_collector', name: 'Mote Collector', description: 'passively gathers nearby mana motes',
+                produces: { mana_motes: 0.5 }, consumes: {}, max: 20, requires: { population: 1 }
+            },
+             {
+                id: 'wisp_gatherer', name: 'Wisp Gatherer', description: 'coaxes Ether Wisps into manifestation',
+                produces: { ether_wisps: 0.2 }, consumes: { mana_motes: 0.1 }, max: 5, requires: { population: 1, constructs: { aetheric_condenser: 1 } }
+            },
+             {
+                 id: 'shard_harvester', name: 'Shard Harvester', description: 'attunes to crystalline energy fields',
+                 produces: { crystal_shards: 0.15 }, consumes: { mana_motes: 0.1 }, max: 5, requires: { population: 1, constructs: { crystal_resonator: 1 } }
+             },
+            {
+                id: 'infuser_adept', name: 'Infuser Adept', description: 'performs basic infusions at the workbench',
+                 produces: { arcane_dust: 0.1 }, consumes: { mana_motes: 0.2 }, max: 3, requires: { population: 1, constructs: { arcane_workbench: 1 } }
+             },
+             {
+                id: 'runescribe_initiate', name: 'Runescribe Initiate', description: 'researches fundamental runic patterns',
+                produces: { research_points: 0.1 }, consumes: { mana_motes: 0.3, ether_wisps: 0.05 }, max: 2, requires: { population: 1, constructs: { runeforge: 1 } } // Assuming research points exist
+             },
+            // ... add more roles like Void Walker (explorer), Guardian Construct (defense), etc.
+        ];
+
+        // --- Infusion Templates (Crafting Examples) ---
+        const infusionTemplates = [
+            {
+                id: 'glowstone_shard', name: 'Glowstone Shard', type: 'utility', description: 'emits a soft, unwavering light',
+                cost: { crystal_shards: 5, mana_motes: 3 }, requires: { infusionTier: 1 }
+            },
+            {
+                id: 'mana_flask_lesser', name: 'Lesser Mana Flask', type: 'consumable', description: 'stores a small amount of mana for later use',
+                cost: { infused_stone: 2, ether_wisps: 5, mana_motes: 10 }, effects: { storeMana: 20 }, requires: { infusionTier: 1 }
+            },
+            {
+                id: 'charged_wand', name: 'Charged Wand', type: 'focus', description: 'a simple conduit for arcane bolts',
+                cost: { infused_stone: 5, crystal_shards: 8, mana_motes: 15 }, effects: { spellPower: 2 }, requires: { infusionTier: 1 }
+            },
+            {
+                id: 'mana_blade', name: 'Mana Blade', type: 'focus', description: 'a blade formed of solidified mana, sharp and volatile',
+                cost: { void_metal: 5, mana_motes: 50, soul_fragments: 2 }, effects: { spellPower: 6 }, requires: { infusionTier: 2 } // Higher tier
+            },
+             {
+                 id: 'warding_weave_robe', name: 'Warding Weave Robe', type: 'ward', description: 'simple robes threaded with protective ether',
+                 cost: { ether_wisps: 15, arcane_dust: 5 }, effects: { resistance: 2 }, requires: { infusionTier: 1 }
+             },
+             {
+                 id: 'runic_amulet', name: 'Runic Amulet', type: 'ward', description: 'an amulet etched with defensive runes',
+                 cost: { infused_stone: 10, arcane_dust: 10, soul_fragments: 1 }, effects: { resistance: 4, maxMana: 10 }, requires: { infusionTier: 2 }
+             },
+             {
+                 id: 'spell_scroll_bolt', name: 'Scroll: Arcane Bolt', type: 'spell_recipe', description: 'unlocks the Arcane Bolt spell',
+                 cost: { arcane_dust: 20, ether_wisps: 5 }, effects: { unlocksSpell: 'arcane_bolt' }, requires: { infusionTier: 1 }
+             },
+            // ... add more catalysts, components, spell scrolls, enchanted gear, runestones etc.
+        ];
+
+        // --- Spell Templates (Stub Examples) ---
+        const spellTemplates = [
+            { id: 'arcane_bolt', name: 'Arcane Bolt', type: 'combat', target: 'enemy', cost: { mana: 5 }, effects: { damage: 8 } },
+            { id: 'mana_shield', name: 'Mana Shield', type: 'combat', target: 'self', cost: { mana: 8 }, effects: { addStatus: 'shielded' }, duration: 3 }, // Status effect placeholder
+            { id: 'minor_illumination', name: 'Minor Illumination', type: 'utility', target: 'self', cost: { mana: 2 }, description: 'briefly illuminates surroundings' },
+             { id: 'detect_essence', name: 'Detect Essence', type: 'utility', target: 'location', cost: { mana: 10 }, description: 'reveals nearby resource concentrations' }
+        ];
+
+        // --- Achievement Templates (Rethemed Examples) ---
+        const achievementTemplates = [
+            { id: 'first_spark', name: 'First Spark', description: 'Focus mana for the first time', icon: 'fa-sparkles', unlocked: false },
+            { id: 'echo_contact', name: 'Echo Contact', description: 'Sense or aid a lingering presence', icon: 'fa-user-secret', unlocked: false },
+            { id: 'reality_shaper', name: 'Reality Shaper', description: 'Manifest your first Nexus construct', icon: 'fa-drafting-compass', unlocked: false },
+            { id: 'nexus_awakens', name: 'Nexus Awakens', description: 'Attune 10 souls to the Nexus', icon: 'fa-users-cog', unlocked: false },
+            { id: 'void_walker', name: 'Void Walker', description: 'Discover a unique locus in the void', icon: 'fa-map-signs', unlocked: false },
+            { id: 'entity_subdued', name: 'Entity Subdued', description: 'Win your first arcane confrontation', icon: 'fa-magic', unlocked: false },
+            { id: 'infuser', name: 'Infuser', description: 'Perform your first successful infusion', icon: 'fa-flask', unlocked: false },
+            { id: 'arcane_conduit', name: 'Arcane Conduit', description: 'Equip your first Focus item', icon: 'fa-wand-magic-sparkles', unlocked: false },
+            { id: 'planar_whispers', name: 'Planar Whispers', description: 'Find evidence of other planes or realities', icon: 'fa-satellite-dish', unlocked: false },
+            { id: 'master_of_void', name: 'Master of the Void', description: 'Map the extents of the reachable void', icon: 'fa-globe', unlocked: false }
+        ];
+
+        // --- Story Events (Rethemed Examples) ---
+        const storyEvents = [
+            { // Start Event
+                id: 'start', title: 'The Void',
+                description: 'You float in a silent, featureless void. A faint, inner warmth is all you perceive. Your thoughts feel sluggish, contained.',
+                choices: [ { text: 'focus inner warmth', nextEvent: 'rune_revealed', requires: {} } ],
+                triggers: {}
+            },
+            { // Rune Revealed
+                id: 'rune_revealed', title: 'A Glimmer of Reality',
+                description: 'Drawing upon that inner warmth, you focus. The oppressive void shimmers and retreats slightly. A soft, ethereal glow emanates from a complex rune etched into the floor(?) directly beneath you. The chamber\'s boundaries are indistinct, shimmering walls of force. Tiny motes of light drift in the air nearby.',
+                choices: [
+                    { text: 'gather motes', action: 'gatherMotes', requires: {} }, // Action instead of next event for first gather
+                    { text: 'examine rune', nextEvent: 'examine_rune_initial', requires: {} }
+                ],
+                triggers: { chamberStatus: 1, achievement: 'first_spark' } // Set chamber status
+            },
+            { // Examine Rune
+                id: 'examine_rune_initial', title: 'The Central Rune',
+                description: 'You focus your attention on the glowing rune. It feels ancient, dormant but stable, humming with contained potential. Its intricate lines seem to map pathways of energy. More motes drift closer as you focus.',
+                choices: [
+                    { text: 'gather motes', action: 'gatherMotes', requires: {} },
+                    { text: 'channel mana into rune', nextEvent: 'channel_rune_attempt', requires: { resources: { mana_motes: 5 } } }
+                ],
+                triggers: { chamberStatus: 2 } // Maybe stabilize rune slightly
+            },
+            { // Channel into Rune (Example)
+                id: 'channel_rune_attempt', title: 'Awakening Touch',
+                 description: 'You carefully channel a stream of gathered motes into the central rune. It absorbs the energy eagerly, flaring brightly for a moment. The ambient hum intensifies, and the shimmering walls pulse. A faint echo, like a distant thought, brushes against your consciousness.',
+                choices: [
+                     { text: 'gather more motes', action: 'gatherMotes', requires: {} },
+                     { text: 'try to perceive the echo', nextEvent: 'echo_sensed', requires: {} }
+                 ],
+                 triggers: { chamberStatus: 3, echoPresence: true, storyline: 1 } // Trigger next story phase
+             },
+             { // Echo Sensed (Replaces stranger)
+                 id: 'echo_sensed', title: 'A Lingering Presence',
+                 description: 'Focusing inward, you reach out towards the faint echo. It feels fragmented, weak, but intelligent. It seems trapped, like you, within this space. Perhaps it holds knowledge.',
+                 choices: [
+                    { text: 'offer mana to strengthen echo', nextEvent: 'strengthen_echo', requires: { resources: { mana_motes: 10 } } },
+                    { text: 'observe passively', nextEvent: 'observe_echo', requires: {} }
+                 ],
+                 triggers: { echoIntegrity: 20 } // Give echo some initial 'health'
+             },
+            // ... Continue story adapting stranger/builder plot to echo/nexus concepts...
+            // Example: Echo becomes a 'Nexus Guide', teaches basic constructs (replaces builder)
+        ];
+
+        // --- Map Location Types (Rethemed) ---
+         const locationTypes = [
+            { id: 'nexus_core', name: 'Nexus Core', description: 'The central point of your manifested reality. Relatively stable.', icon: 'fa-crosshairs', danger: 0, resources: { mana_motes: 0.1 } }, // Village replacement
+            { id: 'shifting_mist', name: 'Shifting Mist', description: 'Ethereal mists obscure vision and reality.', icon: 'fa-smog', danger: 1, resources: { mana_motes: 0.2, ether_wisps: 0.1 } }, // Forest replacement
+            { id: 'resonant_cavern', name: 'Resonant Cavern', description: 'Caves humming with crystalline energy.', icon: 'fa-mountains', danger: 2, resources: { crystal_shards: 0.2, infused_stone: 0.1 } }, // Cave replacement
+            { id: 'shattered_sanctum', name: 'Shattered Sanctum', description: 'Ruins of a forgotten magical structure.', icon: 'fa-archway', danger: 2, resources: { arcane_dust: 0.1, void_metal: 0.05 } }, // Ruins replacement
+            { id: 'astral_pool', name: 'Astral Pool', description: 'A pool reflecting swirling starlight.', icon: 'fa-water', danger: 1, resources: { starlight_essence: 0.05, mana_motes: 0.1 } }, // Lake replacement
+            { id: 'unraveled_plane', name: 'Unraveled Plane', description: 'Areas where reality is thin and dangerous.', icon: 'fa-skull-crossbones', danger: 3, resources: { shadow_essence: 0.1, soul_fragments: 0.05 } }, // Wasteland replacement
+            { id: 'planar_breach', name: 'Planar Breach', description: 'A tear in reality, leaking strange energies.', icon: 'fa-meteor', danger: 4, resources: { void_metal: 0.1, soul_fragments: 0.1 } }, // Crash site replacement
+        ];
+
+        // --- Enemy Templates (Rethemed Examples) ---
+         const enemyTemplates = [
+            { id: 'mana_wraith', name: 'Mana Wraith', health: 30, attack: 4, defense: 1, special: 'mana_drain', loot: { mana_motes: [5, 10], ether_wisps: [1, 3] }, locations: ['shifting_mist', 'resonant_cavern'], level: 1 },
+            { id: 'crystal_spider', name: 'Crystal Spider', health: 40, attack: 5, defense: 3, loot: { crystal_shards: [2, 5], arcane_dust: [0, 2] }, locations: ['resonant_cavern'], level: 2 },
+            { id: 'shadow_beast', name: 'Shadow Beast', health: 50, attack: 6, defense: 2, special: 'fear', loot: { shadow_essence: [1, 3], soul_fragments: [0, 1] }, locations: ['unraveled_plane'], level: 2 },
+            { id: 'lost_soul', name: 'Lost Soul', health: 25, attack: 3, defense: 1, loot: { soul_fragments: [1, 2] }, locations: ['shattered_sanctum', 'unraveled_plane'], level: 1 },
+            { id: 'runic_golem', name: 'Runic Golem', health: 80, attack: 7, defense: 5, loot: { infused_stone: [5, 10], void_metal: [0, 1], arcane_dust: [1, 3] }, locations: ['shattered_sanctum', 'planar_breach'], level: 3 },
+             { id: 'void_horror', name: 'Void Horror', health: 120, attack: 9, defense: 4, special: 'unravel', loot: { void_metal: [1, 2], shadow_essence: [2, 4], starlight_essence: [0,1] }, locations: ['planar_breach'], level: 4 },
+         ];
+
+        // --- Audio Elements (Placeholder paths) ---
+        // NOTE: You would NEED to find or create suitable magical sound effects.
+        const audioFiles = {
+            rune_hum: new Audio('sounds/rune_hum_loop.mp3'), // Replace fire sound
+            focus_mana: new Audio('sounds/focus_mana.mp3'), // Replace click sound for specific actions
+            generic_click: new Audio('sounds/ui_click.mp3'),
+            achievement: new Audio('sounds/achievement_magic.mp3'),
+            combat_start: new Audio('sounds/combat_start_magic.mp3'),
+            combat_victory: new Audio('sounds/combat_victory_magic.mp3'),
+            ambient_void: new Audio('sounds/ambient_void_loop.mp3'),
+            construct_complete: new Audio('sounds/construct_complete.mp3'), // Replace build sound
+            spell_cast_bolt: new Audio('sounds/spell_bolt.mp3'),
+            // Add more as needed
+        };
+        audioFiles.rune_hum.loop = true;
+        audioFiles.ambient_void.loop = true;
+        audioFiles.ambient_void.volume = 0.4;
+
+        // DOM Elements Cache
+        const elements = {}; // Will be populated by cacheElements()
+
+        // --- Initialization ---
+        function initGame() {
+            cacheElements();
+            initializeMap(); // Still uses the 15x15 grid logic
+            setupEventListeners();
+            gameState.achievements = JSON.parse(JSON.stringify(achievementTemplates)); // Load achievement templates
+            loadSettings(); // Load settings from storage
+
+            // Show loading screen briefly
+                    // Hide loading screen and show game container immediately
+        document.querySelector('.loading-screen').style.opacity = '0';
+        // Using transitionend ensures the display change waits for the fade-out
+        document.querySelector('.loading-screen').addEventListener('transitionend', () => {
+            document.querySelector('.loading-screen').style.display = 'none';
+        }, { once: true });
+        elements.gameContainer.classList.add('visible'); // Slightly shorter load time
+
+             checkForSavedGames(); // Check if there's a game to load
+
+            // Don't automatically start the game loop until player clicks 'Focus'
+            // gameLoop(); // We start this loop in startGame()
+        }
+
+        function cacheElements() {
+             elements.gameContainer = document.getElementById('game-container');
+             elements.startScreen = document.getElementById('start-screen');
+             elements.mainGame = document.getElementById('main-game');
+             elements.btnStartGame = document.getElementById('btn-start-game');
+             elements.chamberRoom = document.getElementById('chamber-room'); // Updated ID
+             elements.chamberTitle = document.getElementById('chamber-title'); // Updated ID
+             elements.chamberDescription = document.getElementById('chamber-description'); // Updated ID
+             elements.chamberChoices = document.getElementById('chamber-choices'); // Updated ID
+             elements.resourcesContainer = document.getElementById('resources-container');
+             // Specific resource displays (if needed, but dynamic is better)
+             // elements.manaMotesIncome = document.getElementById('mana_motes-income');
+             // elements.manaMotesStorage = document.getElementById('mana_motes-storage');
+             elements.btnGatherMotes = document.getElementById('btn-gather-motes'); // Updated ID
+             elements.btnChannelMana = document.getElementById('btn-channel-mana'); // Updated ID
+             elements.eventLog = document.getElementById('event-log');
+             elements.mapContainer = document.getElementById('map-container');
+             elements.mapGrid = document.getElementById('map-grid');
+             elements.btnToggleMap = document.getElementById('btn-toggle-map');
+             elements.currentLocation = document.getElementById('current-location');
+             elements.locationDescription = document.getElementById('location-description');
+             elements.btnExplore = document.getElementById('btn-explore');
+             elements.btnReturnNexus = document.getElementById('btn-return-nexus'); // Updated ID
+             elements.explorationEncounter = document.getElementById('exploration-encounter');
+             elements.combatEnemyContainer = document.getElementById('combat-enemy-container');
+             elements.combatLog = document.getElementById('combat-log');
+             elements.combatActions = document.getElementById('combat-actions');
+             elements.constructsContainer = document.getElementById('constructs-container'); // Updated ID
+             elements.attunementContainer = document.getElementById('attunement-container'); // Updated ID
+             elements.population = document.getElementById('population');
+             elements.maxPopulation = document.getElementById('max-population');
+             elements.populationBar = document.getElementById('population-bar');
+             elements.infusionContainer = document.getElementById('infusion-container'); // Updated ID
+             elements.spellsContainer = document.getElementById('spells-container'); // New
+             elements.researchContainer = document.getElementById('research-container'); // New
+             elements.achievementsContainer = document.getElementById('achievements-container');
+             elements.saveSlots = document.getElementById('save-slots');
+             elements.loadSlots = document.getElementById('load-slots');
+
+             // Modals
+             elements.settingsModal = document.getElementById('settings-modal');
+             elements.saveModal = document.getElementById('save-modal');
+             elements.loadModal = document.getElementById('load-modal');
+             elements.achievementsModal = document.getElementById('achievements-modal');
+             elements.restartModal = document.getElementById('restart-modal');
+             elements.grimoireModal = document.getElementById('grimoire-modal'); // New
+
+             // Settings elements
+             elements.toggleSoundEffects = document.getElementById('toggle-sound-effects');
+             elements.toggleMusic = document.getElementById('toggle-music');
+             elements.volumeSlider = document.getElementById('volume-slider');
+             elements.volumeValue = document.getElementById('volume-value');
+             elements.toggleHighContrast = document.getElementById('toggle-high-contrast');
+             elements.toggleScreenReader = document.getElementById('toggle-screen-reader');
+             elements.toggleVisualEffects = document.getElementById('toggle-visual-effects');
+             elements.toggleAutosave = document.getElementById('toggle-autosave');
+
+             // Sidebar elements
+             elements.sidebarToggle = document.getElementById('sidebar-toggle-btn'); // Updated ID
+             elements.sidebar = document.getElementById('sidebar-menu'); // Updated ID
+             elements.sidebarClose = document.getElementById('sidebar-close-btn'); // Updated ID
+             elements.btnSaveGame = document.getElementById('btn-save-game');
+             elements.btnLoadGame = document.getElementById('btn-load-game');
+             elements.btnSettings = document.getElementById('btn-settings');
+             elements.btnAchievements = document.getElementById('btn-achievements');
+             elements.btnGrimoire = document.getElementById('btn-grimoire'); // New
+             elements.btnRestart = document.getElementById('btn-restart');
+
+             // Tab elements
+             elements.tabButtons = document.querySelectorAll('.tab-button');
+             elements.tabContents = document.querySelectorAll('.tab-content');
+
+            // Close buttons for modals (using data attribute)
+            elements.modalCloseButtons = document.querySelectorAll('[data-close-modal]');
+
+             // Specific action buttons in modals
+             elements.btnRestartConfirm = document.getElementById('btn-restart-confirm');
+        }
+
+        function setupEventListeners() {
+            elements.btnStartGame.addEventListener('click', startGame);
+            elements.btnGatherMotes.addEventListener('click', gatherMotes); // Renamed
+            elements.btnChannelMana.addEventListener('click', channelMana); // Renamed
+
+             elements.btnToggleMap.addEventListener('click', toggleMap);
+             elements.btnExplore.addEventListener('click', explore);
+             elements.btnReturnNexus.addEventListener('click', returnToNexus); // Renamed
+
+            elements.combatActions.addEventListener('click', handleCombatAction);
+
+            // Sidebar
+            elements.sidebarToggle.addEventListener('click', () => { elements.sidebar.classList.add('open'); playSound('generic_click'); });
+            elements.sidebarClose.addEventListener('click', () => { elements.sidebar.classList.remove('open'); playSound('generic_click'); });
+            elements.btnSaveGame.addEventListener('click', openSaveModal);
+            elements.btnLoadGame.addEventListener('click', openLoadModal);
+            elements.btnSettings.addEventListener('click', openSettingsModal);
+            elements.btnAchievements.addEventListener('click', openAchievementsModal);
+            elements.btnGrimoire.addEventListener('click', openGrimoireModal); // New
+            elements.btnRestart.addEventListener('click', openRestartModal);
+
+             // Modal Closing
+            elements.modalCloseButtons.forEach(button => button.addEventListener('click', closeModal));
+             elements.restartModal.addEventListener('click', (e) => { // Close if backdrop clicked
+                 if (e.target === elements.restartModal) closeModal();
+             });
+             // Add similar backdrop listeners for other modals if needed
+
+            // Specific Modal Actions
+            elements.btnRestartConfirm.addEventListener('click', restartGame);
+
+            // Tabs
+            elements.tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    switchTab(button.dataset.tab);
+                    playSound('generic_click');
+                });
+            });
+
+            // Settings Controls
+            elements.toggleSoundEffects.addEventListener('change', updateSettings);
+            elements.toggleMusic.addEventListener('change', updateSettings);
+            elements.volumeSlider.addEventListener('input', updateVolume); // Use input for live update
+            elements.volumeSlider.addEventListener('change', updateSettings); // Save on release
+            elements.toggleHighContrast.addEventListener('change', updateSettings);
+            elements.toggleScreenReader.addEventListener('change', updateSettings);
+            elements.toggleVisualEffects.addEventListener('change', updateSettings);
+            elements.toggleAutosave.addEventListener('change', updateSettings);
+
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+
+        // --- Core Game Loop & Updates ---
+
+        function gameLoop() {
+            if (!gameState.started) return; // Don't run if paused or not started
+
+            const now = Date.now();
+            const elapsed = now - gameState.lastTick;
+
+            if (elapsed >= gameState.tickInterval) {
+                const ticks = Math.floor(elapsed / gameState.tickInterval);
+                gameState.lastTick = now - (elapsed % gameState.tickInterval);
+
+                for (let i = 0; i < ticks; i++) {
+                    if (gameState.started) { // Double check we haven't been stopped mid-tick
+                         updateGameTick();
+                    }
+                 }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateGameTick() {
+            gameState.tick++;
+            gameState.gameTime += gameState.gameSpeed;
+
+            updateChamber(); // Update passive chamber effects
+            updateResources(); // Update resource income/consumption
+            updatePlayerState(); // Update player mana regen, effects etc.
+            // updateResearch(); // Placeholder for research progress
+            // updateConstruction(); // Placeholder for construct build times
+            updateUI(); // Update displayed values
+
+            checkStoryEvents(); // Check for time-based or state-based events
+
+             // Autosave (consider making interval configurable)
+             if (gameState.settings.autosave && gameState.tick % 300 === 0) { // Every 300 ticks = 5 minutes default
+                 autoSaveGame();
+             }
+        }
+
+        function startGame() {
+             gameState.started = true;
+             elements.startScreen.classList.add('hidden');
+             elements.mainGame.classList.remove('hidden');
+             playSound('focus_mana'); // Play distinct sound for starting
+
+             triggerStoryEvent('start'); // Start the narrative
+
+             // Start ambient sounds
+             if (gameState.settings.music) {
+                 audioFiles.ambient_void.play().catch(e => console.warn("Autoplay prevented:", e));
+             }
+
+             updateResourcesDisplay(); // Show initial resources (likely 0)
+             updateUI(); // Initial UI setup
+
+             gameLoop(); // Start the main game loop
+        }
+
+         // --- Sound Handling ---
+         function playSound(soundName) {
+             if (!gameState.settings.soundEffects) return;
+
+             const audio = audioFiles[soundName];
+             if (audio) {
+                 audio.volume = gameState.settings.volume;
+                 audio.currentTime = 0; // Rewind to start
+                 audio.play().catch(e => console.warn(`Sound play failed (${soundName}):`, e));
+             } else {
+                 console.warn(`Sound not found: ${soundName}`);
+             }
+         }
+
+        // --- Notifications & Logging ---
+        function showNotification(title, message, type = 'info', duration = 5000) {
+             const notificationId = 'notification-' + Date.now();
+             const notificationArea = document.getElementById('notifications');
+
+             const notificationDiv = document.createElement('div');
+             notificationDiv.className = `notification ${type}`; // Use type for potential styling
+             notificationDiv.id = notificationId;
+
+             // Set border color based on type using var()
+             let borderColorVar = 'var(--primary-color)'; // default info
+             if (type === 'success') borderColorVar = 'var(--success-color)';
+             else if (type === 'warning') borderColorVar = 'var(--accent-color)'; // Use accent for warning
+             else if (type === 'error') borderColorVar = 'var(--danger-color)';
+             notificationDiv.style.borderLeft = `4px solid ${borderColorVar}`;
+
+
+             notificationDiv.innerHTML = `
+                 <div class="notification-title">${title}</div>
+                 <div class="notification-message">${message}</div>
+                 <button class="absolute top-1 right-2 text-gray-500 hover:text-white text-xs" onclick="document.getElementById('${notificationId}').remove()">×</button>
+             `;
+
+            notificationArea.appendChild(notificationDiv);
+
+             // Animate in
+             requestAnimationFrame(() => {
+                 notificationDiv.classList.add('show');
+             });
+
+             // Auto-remove after duration
+             setTimeout(() => {
+                 notificationDiv.classList.remove('show');
+                notificationDiv.addEventListener('transitionend', () => notificationDiv.remove(), { once: true });
+             }, duration);
+         }
+
+         function logEvent(message, type = 'info') { // Optional type for styling log entries
+            const now = new Date();
+            // Use a simpler timestamp or none if preferred
+            // const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // const logTimestamp = `<span class="event-timestamp">[${timestamp}]</span>`;
+            const logTimestamp = ''; // No timestamp for cleaner look?
+
+            const logItem = document.createElement('div');
+            logItem.className = `event-log-item event-${type}`; // Add type class
+            logItem.innerHTML = `${logTimestamp} ${message}`;
+
+            elements.eventLog.appendChild(logItem);
+            // Auto-scroll to bottom
+            elements.eventLog.scrollTop = elements.eventLog.scrollHeight;
+
+             // Add to state for saving (limit size)
+             gameState.events.push({ time: now.getTime(), message: message, type: type });
+             if (gameState.events.length > 150) { // Keep last 150 events
+                 gameState.events.shift();
+             }
+         }
+        // === Story and Choice Handling (Adapted) ===
+
+        function triggerStoryEvent(eventId) {
+             const event = storyEvents.find(e => e.id === eventId);
+             if (!event) {
+                 console.warn(`Story event not found: ${eventId}`);
+                 // Fallback to a generic state if event is missing?
+                 // elements.chamberDescription.textContent = "Reality fragments momentarily...";
+                 // elements.chamberChoices.innerHTML = ''; // Clear choices
+                 return;
+             }
+
+             console.log(`Triggering Story Event: ${eventId}`); // Debug log
+
+             elements.chamberTitle.textContent = event.title;
+             elements.chamberDescription.textContent = event.description;
+             elements.chamberChoices.innerHTML = ''; // Clear previous choices
+
+             if (event.choices && event.choices.length > 0) {
+                 event.choices.forEach(choice => {
+                     if (canMakeChoice(choice)) {
+                         const choiceButton = document.createElement('button');
+                         choiceButton.className = 'btn choice-btn btn-secondary'; // Default style
+                         choiceButton.textContent = choice.text;
+
+                         // Add keybinding hint if available
+                         if (choice.key) {
+                              choiceButton.innerHTML += ` <span class="keybinding">${choice.key.toUpperCase()}</span>`;
+                         }
+
+                         choiceButton.addEventListener('click', () => {
+                             selectChoice(choice, event);
+                         });
+                         elements.chamberChoices.appendChild(choiceButton);
+                     } else {
+                         // Optionally show disabled choices
+                         // const disabledButton = document.createElement('button');
+                         // disabledButton.className = 'btn choice-btn btn-disabled';
+                         // disabledButton.textContent = choice.text + " (unavailable)";
+                         // elements.chamberChoices.appendChild(disabledButton);
+                     }
+                 });
+             } else {
+                // If no choices, maybe log something or add a default "Observe" action?
+                logEvent("Reality settles into a new configuration.", "system");
+             }
+
+
+             // Apply event triggers
+             if (event.triggers) {
+                 applyEventTriggers(event.triggers);
+             }
+
+             logEvent(event.description, "story"); // Log the main description
+            updateUI(); // Ensure UI reflects triggered changes
+         }
+
+         function canMakeChoice(choice) {
+            if (!choice.requires) return true; // No requirements
+
+             // Resource check
+             if (choice.requires.resources) {
+                 for (const [res, amount] of Object.entries(choice.requires.resources)) {
+                     if (gameState.resources[res] < amount) return false;
+                 }
+             }
+             // Construct check
+             if (choice.requires.constructs) {
+                 for (const [conId, count] of Object.entries(choice.requires.constructs)) {
+                     if (gameState.constructs.filter(c => c.id === conId).length < count) return false;
+                 }
+             }
+             // Story flag check
+             if (choice.requires.storyline && gameState.storyline < choice.requires.storyline) {
+                 return false;
+             }
+             // Add checks for spells known, research completed, player stats etc. as needed
+
+
+             return true; // All checks passed
+         }
+
+        function selectChoice(choice, currentEvent) {
+             playSound('generic_click');
+
+             // Deduct resources
+             if (choice.requires && choice.requires.resources) {
+                 for (const [res, amount] of Object.entries(choice.requires.resources)) {
+                     gameState.resources[res] -= amount;
+                 }
+             }
+             // Log the choice text
+             logEvent(`You chose: ${choice.text}`, "player");
+
+             // Execute direct action if specified
+             if (choice.action) {
+                 if (typeof window[choice.action] === 'function') {
+                     window[choice.action](); // Call the function by name
+                 } else {
+                     console.warn(`Choice action function not found: ${choice.action}`);
+                 }
+                 // Stay in the current "event" state, but refresh choices / description potentially?
+                 // Or the action function might trigger a new event.
+             }
+
+             // Trigger next story event
+             if (choice.nextEvent) {
+                 triggerStoryEvent(choice.nextEvent);
+             }
+
+             // Apply specific choice triggers (if any)
+             if (choice.triggers) {
+                 applyEventTriggers(choice.triggers);
+             }
+
+             updateUI(); // Update after action/event change
+         }
+
+         function applyEventTriggers(triggers) {
+             if (triggers.chamberStatus !== undefined) {
+                 gameState.chamberStatus = triggers.chamberStatus;
+                 updateChamberVisuals(); // Update CSS classes / effects
+             }
+             if (triggers.echoPresence !== undefined) gameState.echoPresence = triggers.echoPresence;
+             if (triggers.echoIntegrity !== undefined) gameState.echoIntegrity = triggers.echoIntegrity;
+             if (triggers.nexusStabilized !== undefined) {
+                 gameState.nexusStabilized = triggers.nexusStabilized;
+                 // Unlock initial construct options maybe?
+                 updateConstructOptions();
+             }
+             if (triggers.storyline !== undefined) gameState.storyline = triggers.storyline;
+             if (triggers.achievement) unlockAchievement(triggers.achievement);
+             if (triggers.unlockTab) switchTab(triggers.unlockTab); // e.g., unlock 'nexus' tab
+             if (triggers.addResource) {
+                 for(const [res, amount] of Object.entries(triggers.addResource)) {
+                    addResource(res, amount);
+                 }
+             }
+             // Add triggers for learning spells, starting research, etc.
+             console.log("Applied triggers:", triggers); // Debug
+         }
+
+         // --- Chamber State ---
+         function updateChamber() {
+            // Example passive effect: Rune stabilization depends on mana flow?
+            if (gameState.chamberStatus > 0) {
+                // Consume base mana motes over time? Or maybe stability decays?
+                 if (gameState.tick % 15 === 0) { // Every 15 seconds
+                     const decayRate = 0.1; // Example
+                    // gameState.chamberStability = Math.max(0, gameState.chamberStability - decayRate);
+                    // Or instability grows if mana is low?
+                 }
+
+                // Update chamber stability property based on status for descriptions
+                 gameState.chamberStability = Math.min(4, gameState.chamberStatus); // Simple mapping for now
+            } else {
+                 gameState.chamberStability = 0;
+            }
+         }
+
+         function updateChamberVisuals() {
+            const chamber = elements.chamberRoom;
+             if (gameState.chamberStatus > 0) {
+                 chamber.classList.add('chamber-active'); // Use new class
+                 // Play rune hum sound
+                 if (gameState.settings.soundEffects && !audioFiles.rune_hum.playing ) {
+                      audioFiles.rune_hum.volume = gameState.settings.volume * 0.5; // Quieter ambient hum
+                      audioFiles.rune_hum.play().catch(e => console.warn("Rune hum autoplay prevented:", e));
+                 }
+                 // Adjust glow intensity (optional)
+                 const glowEffect = chamber.querySelector('.rune-glow-effect');
+                 glowEffect.style.opacity = 0.2 + (gameState.chamberStatus * 0.25);
+
+             } else {
+                 chamber.classList.remove('chamber-active');
+                 audioFiles.rune_hum.pause();
+                 audioFiles.rune_hum.currentTime = 0;
+             }
+            // Update room description based on stability IF not in a specific story event state
+            // This logic needs refinement - don't override specific event text.
+            // Maybe only update a secondary status line?
+         }
+
+
+        // --- Resource Management ---
+        function gatherMotes() { // Renamed from gatherWood
+             const amountGathered = 1 + Math.floor(gameState.chamberStatus / 2); // Gather more if chamber is stable
+             if (addResource('mana_motes', amountGathered)) {
+                 logEvent(`You gather ${amountGathered} mana mote(s).`);
+                 playSound('generic_click'); // Or a specific 'gather' sound
+             }
+        }
+
+        function channelMana() { // Renamed from stokeFire
+             if (gameState.resources.mana_motes >= 1) {
+                 gameState.resources.mana_motes--;
+                 gameState.chamberStatus = Math.min(3, gameState.chamberStatus + 1); // Max status 3
+                 logEvent('You channel mana into the chamber, stabilizing it slightly.');
+                 playSound('focus_mana');
+                 updateChamberVisuals();
+                 updateResourcesDisplay();
+             } else {
+                 showNotification('Insufficient Mana', 'You need mana motes to channel.', 'warning');
+             }
+        }
+
+        function addResource(resourceId, amount) {
+            if (!gameState.resources.hasOwnProperty(resourceId)) {
+                console.warn(`Attempted to add unknown resource: ${resourceId}`);
+                return false;
+            }
+            const currentAmount = gameState.resources[resourceId];
+            const maxStorage = gameState.resourceStorage[resourceId];
+            const actualAmountAdded = Math.min(amount, maxStorage - currentAmount);
+
+            if (actualAmountAdded > 0) {
+                gameState.resources[resourceId] += actualAmountAdded;
+                updateResourcesDisplay(); // Update display immediately
+                return true; // Resource was added
+            } else if (amount > 0) {
+                // Only show notification if trying to add something but storage is full
+                showNotification('Storage Full', `Your capacity for ${getResourceInfo(resourceId).name} is full.`, 'warning');
+                return false; // Storage full
+            }
+            return false; // No change
+        }
+
+
+        function updateResources() {
+             // Clear income per tick before recalculating
+             for (const res in gameState.resourceIncome) {
+                 gameState.resourceIncome[res] = 0;
+             }
+
+             // Calculate income from attuned souls (workers)
+             gameState.attunedSouls.forEach(soul => {
+                 const template = soulTemplates.find(t => t.id === soul.id);
+                 if (template && soul.count > 0) {
+                     let canProduce = true;
+                     // Check consumption
+                     if (template.consumes) {
+                         for (const [res, rate] of Object.entries(template.consumes)) {
+                             const consumptionPerTick = rate * soul.count / (1000 / gameState.tickInterval); // Per tick consumption
+                             if (gameState.resources[res] < consumptionPerTick) {
+                                 canProduce = false;
+                                 // Maybe add a log message about lack of resources for workers?
+                                 // logEvent(`${template.name} lack ${res} to function.`, 'warning');
+                                 break;
+                             }
+                         }
+                     }
+
+                     if (canProduce) {
+                         // Apply consumption
+                         if (template.consumes) {
+                             for (const [res, rate] of Object.entries(template.consumes)) {
+                                 const consumptionPerTick = rate * soul.count / (1000 / gameState.tickInterval);
+                                 gameState.resources[res] = Math.max(0, gameState.resources[res] - consumptionPerTick);
+                             }
+                         }
+                         // Apply production
+                         if (template.produces) {
+                             for (const [res, rate] of Object.entries(template.produces)) {
+                                 const productionPerTick = rate * soul.count / (1000 / gameState.tickInterval);
+                                 const productionPerSecond = rate * soul.count;
+
+                                 // Store per-second rate for display
+                                 gameState.resourceIncome[res] = (gameState.resourceIncome[res] || 0) + productionPerSecond;
+
+                                 // Add resource, respecting storage limits
+                                 if (res !== 'research_points' && res !== 'exploration') { // Handle special 'resources' differently
+                                    const currentAmount = gameState.resources[res];
+                                    const maxStorage = gameState.resourceStorage[res];
+                                    const actualAmountAdded = Math.min(productionPerTick, maxStorage - currentAmount);
+                                    if(actualAmountAdded > 0) {
+                                        gameState.resources[res] += actualAmountAdded;
+                                    }
+                                 } else if (res === 'research_points') {
+                                    // Add logic to handle research points
+                                    // updateResearchProgress(project, productionPerTick);
+                                 }
+                             }
+                         }
+                     }
+                 }
+             });
+
+            // Add passive mana mote generation based on chamber status?
+            const passiveMoteGen = gameState.chamberStatus * 0.05; // Example: 0.05/sec per status level
+             gameState.resourceIncome.mana_motes += passiveMoteGen * (1000 / gameState.tickInterval);
+             addResource('mana_motes', passiveMoteGen);
+
+             // Need to call updateResourcesDisplay() periodically, maybe in updateUI() ?
+         }
+
+
+        // --- Player State Update ---
+        function updatePlayerState() {
+            // Mana regeneration example
+             const manaRegenRate = 0.1 + (gameState.player.resistance * 0.05); // Base + regen from RES?
+             gameState.player.mana = Math.min(gameState.player.maxMana, gameState.player.mana + manaRegenRate * (gameState.tickInterval / 1000));
+
+            // Update durations of status effects
+            // gameState.player.effects = gameState.player.effects.filter(effect => {
+            //     effect.duration -= gameState.tickInterval / 1000;
+            //     return effect.duration > 0;
+            // });
+             // Add logic to apply ongoing effects (damage over time, stat changes)
+         }
+
+
+        // --- UI Update Functions ---
+
+         function updateUI() {
+             updateResourcesDisplay();
+             updatePopulationDisplay();
+             updateConstructOptions(); // Buildings
+             updateAttunementOptions(); // Workers
+             updateInfusionOptions(); // Crafting
+             // updateSpellList(); // To show known spells
+             // updateResearchList(); // To show research projects
+             updateCombatUI(); // Update enemy health, player status etc. if in combat
+             updateExplorationStatus(); // Update current location display
+            // Ensure correct tab content is visible
+            // updateButtonStates(); // Disable buttons if requirements aren't met (e.g., channel mana)
+         }
+
+        function updateResourcesDisplay() {
+             elements.resourcesContainer.innerHTML = ''; // Clear old entries
+
+             // Determine which resources to show (e.g., anything > 0, or certain key resources)
+             const resourcesToShow = Object.keys(resourceInfo).filter(resId =>
+                 gameState.resources[resId] > 0 || ['mana_motes', 'infused_stone'].includes(resId) // Always show mana and stone?
+             );
+
+             resourcesToShow.forEach(resId => {
+                 const info = getResourceInfo(resId);
+                 const amount = gameState.resources[resId];
+                 const storage = gameState.resourceStorage[resId];
+                 const income = gameState.resourceIncome[resId] || 0;
+
+                 const div = document.createElement('div');
+                 div.className = 'resource-container';
+                 div.dataset.resource = resId;
+
+                 div.innerHTML = `
+                     <div class="flex justify-between items-center mb-1">
+                         <div class="resource-name">
+                             <i class="${info.icon} fa-fw" style="color: ${info.color}"></i> ${info.name}
+                         </div>
+                         <div class="resource-value">${Math.floor(amount)}</div>
+                     </div>
+                     <div class="flex justify-between text-xs text-gray-400">
+                         <span>${income > 0 ? '+' : ''}${income.toFixed(1)}/s</span>
+                         <span>/ ${storage} max</span>
+                     </div>
+                     <!-- Optional progress bar for storage -->
+                     <div class="progress-container mt-1" style="height: 3px;">
+                        <div class="progress-bar" style="width: ${(amount / storage) * 100}%; background: ${info.color};"></div>
+                     </div>
+                 `;
+                 elements.resourcesContainer.appendChild(div);
+             });
+
+            // Update specific button states
+             elements.btnChannelMana.disabled = gameState.resources.mana_motes < 1;
+             elements.btnChannelMana.classList.toggle('btn-disabled', elements.btnChannelMana.disabled);
+         }
+
+         function getResourceInfo(resourceId) {
+            return resourceInfo[resourceId] || { name: resourceId, icon: 'fa-question-circle', color: 'var(--muted-color)' };
+         }
+
+         function updatePopulationDisplay() {
+             elements.population.textContent = gameState.population;
+             elements.maxPopulation.textContent = gameState.maxPopulation;
+             const percent = (gameState.maxPopulation > 0) ? (gameState.population / gameState.maxPopulation) * 100 : 0;
+             elements.populationBar.style.width = `${percent}%`;
+         }
+
+        // --- Nexus Construct (Building) Logic ---
+         function updateConstructOptions() {
+             if (!elements.constructsContainer) return;
+             elements.constructsContainer.innerHTML = ''; // Clear
+
+             constructTemplates.forEach(template => {
+                 if (shouldShowConstruct(template)) {
+                     const builtCount = gameState.constructs.filter(c => c.id === template.id).length;
+                     const canBuildMore = template.maxBuilt === undefined || builtCount < template.maxBuilt;
+                     let canAfford = true;
+                     let costString = '';
+
+                     for (const [res, amount] of Object.entries(template.cost)) {
+                         if (gameState.resources[res] < amount) canAfford = false;
+                         const resInfo = getResourceInfo(res);
+                         costString += `<span class="mr-2 text-xs whitespace-nowrap ${gameState.resources[res] < amount ? 'text-danger-color' : ''}"><i class="${resInfo.icon} fa-fw" style="color: ${resInfo.color}"></i> ${amount}</span>`;
+                     }
+
+                     const constructElement = document.createElement('div');
+                     constructElement.className = 'p-3 border border-gray-700 rounded bg-black bg-opacity-10';
+                     constructElement.innerHTML = `
+                         <div class="flex justify-between items-center mb-1">
+                             <strong class="text-secondary-color">${template.name}</strong>
+                             <span class="text-sm text-gray-400">${builtCount}${template.maxBuilt ? '/' + template.maxBuilt : ''}</span>
+                         </div>
+                         <p class="text-sm text-gray-400 mb-2">${template.description}</p>
+                         <div class="flex flex-wrap items-center mb-2">${costString}</div>
+                         <button class="btn btn-sm ${!canAfford || !canBuildMore ? 'btn-disabled' : 'btn-primary'}" data-construct-id="${template.id}" ${!canAfford || !canBuildMore ? 'disabled' : ''}>
+                             Manifest
+                         </button>
+                    `;
+
+                     const button = constructElement.querySelector('button');
+                     if (button && canAfford && canBuildMore) {
+                         button.addEventListener('click', () => manifestConstruct(template));
+                     }
+                     elements.constructsContainer.appendChild(constructElement);
+                 }
+             });
+             if(elements.constructsContainer.innerHTML === '') {
+                elements.constructsContainer.innerHTML = '<p class="text-gray-500 text-sm italic">No constructs available to manifest currently.</p>';
+             }
+         }
+
+        function shouldShowConstruct(template) {
+             if (!template.requires) return true; // Always show if no requirements
+             if (template.requires.nexusStabilized && !gameState.nexusStabilized) return false;
+             if (template.requires.constructs) {
+                 for (const [reqId, count] of Object.entries(template.requires.constructs)) {
+                     if (gameState.constructs.filter(c => c.id === reqId).length < count) return false;
+                 }
+             }
+             // Add research requirements check here later
+             return true;
+         }
+
+         function manifestConstruct(template) {
+             // Double check cost
+             for (const [res, amount] of Object.entries(template.cost)) {
+                 if (gameState.resources[res] < amount) {
+                     showNotification('Insufficient Essence', `Requires ${amount} ${getResourceInfo(res).name}.`, 'warning');
+                     return;
+                 }
+             }
+             // Deduct cost
+             for (const [res, amount] of Object.entries(template.cost)) {
+                 gameState.resources[res] -= amount;
+             }
+
+             // Add construct
+             gameState.constructs.push({ id: template.id, name: template.name });
+
+             // Apply effects
+             if (template.effects) {
+                  if (template.effects.maxPopulation) gameState.maxPopulation += template.effects.maxPopulation;
+                  if (template.effects.resourceStorage) {
+                     for (const [res, amount] of Object.entries(template.effects.resourceStorage)) {
+                         modResourceStorage(res, amount);
+                     }
+                  }
+                // Add effects for infusionTier, allowsWorker etc.
+             }
+
+             playSound('construct_complete');
+             logEvent(`Manifested a ${template.name}.`, "success");
+             showNotification('Construct Manifested', `${template.name} solidified into reality.`, 'success');
+
+             if (gameState.constructs.length === 1 && !gameState.achievements.find(a=>a.id === 'reality_shaper' && a.unlocked)) {
+                 unlockAchievement('reality_shaper');
+             }
+             updateUI();
+         }
+
+        function modResourceStorage(resourceId, delta) {
+            if(gameState.resourceStorage.hasOwnProperty(resourceId)) {
+                gameState.resourceStorage[resourceId] += delta;
+                // Ensure storage doesn't go below a minimum? (e.g., 10?)
+                gameState.resourceStorage[resourceId] = Math.max(10, gameState.resourceStorage[resourceId]);
+            }
+        }
+
+        // --- Attunement (Worker) Logic ---
+        function updateAttunementOptions() {
+            // Similar to updateWorkerOptions, but re-themed
+            if (!elements.attunementContainer) return;
+            elements.attunementContainer.innerHTML = '';
+
+             const assignedSouls = gameState.attunedSouls.reduce((sum, s) => sum + s.count, 0);
+             const availableSouls = gameState.population - assignedSouls;
+
+             let displayedAny = false;
+             soulTemplates.forEach(template => {
+                 if (shouldShowSoulTask(template)) {
+                     displayedAny = true;
+                     // Ensure worker record exists
+                     let soulRecord = gameState.attunedSouls.find(w => w.id === template.id);
+                     if (!soulRecord) {
+                         soulRecord = { id: template.id, count: 0 };
+                         gameState.attunedSouls.push(soulRecord);
+                     }
+
+                     const soulElement = document.createElement('div');
+                     soulElement.className = 'p-3 border border-gray-700 rounded bg-black bg-opacity-10';
+
+                    let producesString = '';
+                     if(template.produces) {
+                        for (const [res, rate] of Object.entries(template.produces)) {
+                             producesString += `<span class="text-xs mr-2 whitespace-nowrap text-success-color"><i class="${getResourceInfo(res).icon} fa-fw"></i> +${rate.toFixed(1)}/s</span>`;
+                         }
+                     }
+                    let consumesString = '';
+                     if(template.consumes) {
+                         for (const [res, rate] of Object.entries(template.consumes)) {
+                             consumesString += `<span class="text-xs mr-2 whitespace-nowrap text-danger-color"><i class="${getResourceInfo(res).icon} fa-fw"></i> -${rate.toFixed(1)}/s</span>`;
+                         }
+                     }
+
+                     soulElement.innerHTML = `
+                         <div class="flex justify-between items-center mb-1">
+                             <strong class="text-secondary-color">${template.name}</strong>
+                             <span class="text-sm text-gray-400">${soulRecord.count}/${template.max}</span>
+                         </div>
+                         <p class="text-sm text-gray-400 mb-2">${template.description}</p>
+                         <div class="flex flex-wrap items-center mb-1">${producesString}</div>
+                         <div class="flex flex-wrap items-center mb-2">${consumesString}</div>
+                         <div class="flex items-center mt-2">
+                             <button class="btn btn-sm btn-secondary" data-soul-id="${template.id}" data-action="decrease" ${soulRecord.count <= 0 ? 'disabled' : ''}>-</button>
+                             <span class="mx-2 text-lg">${soulRecord.count}</span>
+                             <button class="btn btn-sm btn-secondary" data-soul-id="${template.id}" data-action="increase" ${soulRecord.count >= template.max || availableSouls <= 0 ? 'disabled' : ''}>+</button>
+                         </div>
+                     `;
+
+                    const decreaseBtn = soulElement.querySelector('[data-action="decrease"]');
+                    const increaseBtn = soulElement.querySelector('[data-action="increase"]');
+
+                     decreaseBtn.addEventListener('click', () => {
+                         if (soulRecord.count > 0) {
+                             soulRecord.count--;
+                             playSound('generic_click');
+                             updateUI();
+                         }
+                     });
+                     increaseBtn.addEventListener('click', () => {
+                         if (soulRecord.count < template.max && availableSouls > 0) {
+                             soulRecord.count++;
+                             playSound('generic_click');
+                             updateUI();
+                         } else if (soulRecord.count >= template.max) {
+                            showNotification('Attunement Limit', `Maximum ${template.name} reached.`, 'warning');
+                         } else {
+                            showNotification('No Souls Available', `No free souls to attune.`, 'warning');
+                         }
+                     });
+
+                     elements.attunementContainer.appendChild(soulElement);
+                 }
+             });
+
+              if(!displayedAny) {
+                elements.attunementContainer.innerHTML = '<p class="text-gray-500 text-sm italic">No tasks available for attunement yet.</p>';
+             }
+        }
+
+        function shouldShowSoulTask(template) {
+            // Check requirements (population, constructs, research etc.)
+             if (template.requires.population > gameState.population) return false;
+             if (template.requires.constructs) {
+                 for (const [reqId, count] of Object.entries(template.requires.constructs)) {
+                     if (gameState.constructs.filter(c => c.id === reqId).length < count) return false;
+                 }
+             }
+             return true;
+        }
+
+        // --- Infusion (Crafting) Logic ---
+        function updateInfusionOptions() {
+            // Similar to updateCraftingOptions, re-themed
+             if (!elements.infusionContainer) return;
+            elements.infusionContainer.innerHTML = '';
+
+            let displayedAny = false;
+             infusionTemplates.forEach(template => {
+                 if (shouldShowInfusion(template)) {
+                     displayedAny = true;
+                     let canAfford = true;
+                     let costString = '';
+                     for (const [res, amount] of Object.entries(template.cost)) {
+                         if (gameState.resources[res] < amount) canAfford = false;
+                         const resInfo = getResourceInfo(res);
+                         costString += `<span class="mr-2 text-xs whitespace-nowrap ${gameState.resources[res] < amount ? 'text-danger-color' : ''}"><i class="${resInfo.icon} fa-fw" style="color: ${resInfo.color}"></i> ${amount}</span>`;
+                     }
+
+                     let effectsString = '';
+                     if (template.effects) {
+                        // Example: Display spellPower or resistance directly
+                        if(template.effects.spellPower) effectsString += `<span class="text-xs mr-2 text-primary-color"><i class="fas fa-wand-magic-sparkles"></i> +${template.effects.spellPower} Power</span>`;
+                        if(template.effects.resistance) effectsString += `<span class="text-xs mr-2 text-secondary-color"><i class="fas fa-shield-alt"></i> +${template.effects.resistance} Resist</span>`;
+                        if(template.effects.unlocksSpell) effectsString += `<span class="text-xs mr-2 text-accent-color"><i class="fas fa-book"></i> Unlocks Spell</span>`;
+                     }
+
+                     const itemElement = document.createElement('div');
+                    itemElement.className = 'p-3 border border-gray-700 rounded bg-black bg-opacity-10';
+                    itemElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <strong class="text-white">${template.name}</strong>
+                            <span class="text-xs px-1 py-0.5 bg-gray-600 rounded capitalize">${template.type}</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-2">${template.description}</p>
+                        <div class="flex flex-wrap items-center mb-1 text-xs">${effectsString}</div>
+                        <div class="flex flex-wrap items-center mb-2">${costString}</div>
+                         <button class="btn btn-sm ${!canAfford ? 'btn-disabled' : 'btn-success'}" data-infusion-id="${template.id}" ${!canAfford ? 'disabled' : ''}>
+                             Infuse
+                         </button>
+                     `;
+
+                     const button = itemElement.querySelector('button');
+                     if (button && canAfford) {
+                         button.addEventListener('click', () => performInfusion(template));
+                     }
+                     elements.infusionContainer.appendChild(itemElement);
+                 }
+             });
+            if(!displayedAny) {
+                elements.infusionContainer.innerHTML = '<p class="text-gray-500 text-sm italic">No infusion patterns known or possible with current constructs.</p>';
+             }
+        }
+
+        function shouldShowInfusion(template) {
+            // Check requirements (infusionTier from constructs, research, etc.)
+             if (!template.requires) return true;
+             // Example check: assume gameState has infusionTier unlocked by constructs
+             const currentInfusionTier = gameState.constructs.reduce((maxTier, con) => {
+                 const conTemplate = constructTemplates.find(t => t.id === con.id);
+                 return Math.max(maxTier, conTemplate?.effects?.infusionTier || 0);
+             }, 0);
+
+             if (template.requires.infusionTier && currentInfusionTier < template.requires.infusionTier) {
+                 return false;
+             }
+             return true;
+         }
+
+        function performInfusion(template) {
+             // Double check cost
+             for (const [res, amount] of Object.entries(template.cost)) {
+                 if (gameState.resources[res] < amount) {
+                     showNotification('Insufficient Essence', `Requires ${amount} ${getResourceInfo(res).name}.`, 'warning');
+                     return;
+                 }
+             }
+             // Deduct cost
+             for (const [res, amount] of Object.entries(template.cost)) {
+                 gameState.resources[res] -= amount;
+             }
+
+             // Add item/effect
+             logEvent(`Infused ${template.name}.`, "success");
+             showNotification('Infusion Complete', `${template.name} created.`, 'success');
+
+             if(template.type === 'focus' || template.type === 'ward') {
+                // Add to inventory, prompt to equip later
+                gameState.inventory.push({ id: template.id, name: template.name, type: template.type, effects: template.effects });
+
+             } else if (template.type === 'consumable') {
+                 gameState.inventory.push({ id: template.id, name: template.name, type: template.type, effects: template.effects });
+             } else if (template.type === 'spell_recipe') {
+                 // Unlock the spell
+                 if (template.effects.unlocksSpell && !gameState.knownSpells.includes(template.effects.unlocksSpell)) {
+                     gameState.knownSpells.push(template.effects.unlocksSpell);
+                     showNotification('Spell Learned!', `You have learned ${template.effects.unlocksSpell}.`, 'success');
+                     // updateSpellList(); // Update UI
+                 }
+             } else {
+                 // Add other types (utility, component) to inventory
+                 gameState.inventory.push({ id: template.id, name: template.name, type: template.type, effects: template.effects });
+             }
+
+
+             if (gameState.inventory.length === 1 && !gameState.achievements.find(a=>a.id === 'infuser' && a.unlocked)) {
+                 unlockAchievement('infuser');
+             }
+
+             updateUI();
+        }
+
+
+        // --- Exploration Logic ---
+         function initializeMap() {
+            // Keeping the same 15x15 structure for simplicity
+             gameState.exploration.map = Array(15).fill(null).map((_, y) =>
+                 Array(15).fill(null).map((_, x) => {
+                     if (x === 7 && y === 7) return { type: 'nexus_core', explored: true };
+                     // Basic random distribution - IMPROVE THIS LATER
+                     const types = ['shifting_mist', 'resonant_cavern', 'shattered_sanctum', 'astral_pool', 'unraveled_plane', 'planar_breach'];
+                     return { type: types[Math.floor(Math.random() * types.length)], explored: false };
+                 })
+             );
+             renderMap();
+         }
+
+        function toggleMap() {
+             elements.mapContainer.classList.toggle('visible');
+             playSound(elements.mapContainer.classList.contains('visible') ? 'generic_click' : 'generic_click'); // maybe map open/close sounds
+             renderMap(); // Re-render when toggled
+         }
+
+        function renderMap() {
+             if (!elements.mapGrid || !elements.mapContainer.classList.contains('visible')) return; // Don't render if hidden
+             elements.mapGrid.innerHTML = ''; // Clear grid
+
+            const currentX = gameState.exploration.currentLocation.x;
+            const currentY = gameState.exploration.currentLocation.y;
+
+             for (let y = 0; y < 15; y++) {
+                 for (let x = 0; x < 15; x++) {
+                     const cellData = gameState.exploration.map[y][x];
+                     const locationType = locationTypes.find(l => l.id === cellData.type) || {};
+                     const cellDiv = document.createElement('div');
+                     cellDiv.className = 'map-cell';
+                     cellDiv.title = `${locationType.name || 'Unknown'} (${x}, ${y})`; // Tooltip
+
+                     const isCurrent = x === currentX && y === currentY;
+                     const isVisited = gameState.exploration.visited.some(loc => loc.x === x && loc.y === y);
+                     const isDiscovered = gameState.exploration.discovered.some(loc => loc.x === x && loc.y === y);
+
+                     cellDiv.classList.toggle('current', isCurrent);
+                     cellDiv.classList.toggle('visited', isVisited && !isCurrent); // Don't mark current as visited style
+                     cellDiv.classList.toggle('discovered', isDiscovered && !isVisited && !isCurrent); // only if discovered but not visited/current
+                     cellDiv.classList.toggle('unexplored', !isVisited && !isDiscovered && !isCurrent);
+
+                     // Add POI class if applicable (needs logic)
+                     // cellDiv.classList.toggle('poi', cellData.isPOI);
+
+                    // Basic icon display
+                     if (isVisited || isDiscovered || isCurrent) {
+                         cellDiv.innerHTML = `<div class="map-cell-content"><i class="fas ${locationType.icon || 'fa-question'} fa-fw"></i></div>`;
+                     }
+
+                    // Make cells clickable for movement (basic implementation)
+                    if(isDiscovered || isVisited) {
+                        cellDiv.style.cursor = 'pointer';
+                        cellDiv.addEventListener('click', () => movePlayer(x, y));
+                    }
+
+                     elements.mapGrid.appendChild(cellDiv);
+                 }
+             }
+         }
+
+        function explore() {
+            if (gameState.exploration.inCombat) {
+                 showNotification('Cannot Probe', 'Resolve the current confrontation first.', 'warning');
+                 return;
+             }
+            logEvent("You extend your senses into the void...", "action");
+            playSound('generic_click'); // Placeholder sound
+
+            // Simple outcome roll for now
+            const roll = Math.random();
+             if (roll < 0.4) findEssence(); // Find resources
+             else if (roll < 0.7) discoverLocus(); // Discover adjacent locations
+             else encounterEntity(); // Combat
+
+             // Mark current location as visited after exploring from it
+             if (!gameState.exploration.visited.some(l => l.x === gameState.exploration.currentLocation.x && l.y === gameState.exploration.currentLocation.y)) {
+                 gameState.exploration.visited.push({...gameState.exploration.currentLocation});
+             }
+             gameState.exploration.map[gameState.exploration.currentLocation.y][gameState.exploration.currentLocation.x].explored = true; // Also mark internally
+
+             renderMap(); // Update map display
+             updateUI();
+         }
+
+        function findEssence() {
+             // Simplified resource finding based on current location
+             const loc = gameState.exploration.map[gameState.exploration.currentLocation.y][gameState.exploration.currentLocation.x];
+             const locType = locationTypes.find(l => l.id === loc.type);
+             let foundSomething = false;
+             let foundMessages = [];
+
+             if (locType && locType.resources) {
+                 for (const [res, chance] of Object.entries(locType.resources)) {
+                     if (Math.random() < (chance + 0.1)) { // Slightly increased chance
+                         const amount = Math.ceil(Math.random() * 2); // Find 1 or 2
+                         if (addResource(res, amount)) {
+                             foundSomething = true;
+                             foundMessages.push(`${amount} ${getResourceInfo(res).name}`);
+                         }
+                     }
+                 }
+             }
+
+             if (foundSomething) {
+                 logEvent(`You find traces of essence: ${foundMessages.join(', ')}.`, "success");
+             } else {
+                 logEvent("The void yields nothing of interest.", "info");
+             }
+         }
+
+         function discoverLocus() {
+             const currentX = gameState.exploration.currentLocation.x;
+             const currentY = gameState.exploration.currentLocation.y;
+             let newlyDiscovered = false;
+             const neighbors = [ {x:0,y:-1}, {x:0,y:1}, {x:-1,y:0}, {x:1,y:0} ]; // N, S, W, E
+
+             neighbors.forEach(n => {
+                 const nx = currentX + n.x;
+                 const ny = currentY + n.y;
+                 if (nx >= 0 && nx < 15 && ny >= 0 && ny < 15) { // Check bounds
+                     const isKnown = gameState.exploration.visited.some(v=>v.x===nx&&v.y===ny) || gameState.exploration.discovered.some(d=>d.x===nx&&d.y===ny);
+                     if (!isKnown) {
+                         gameState.exploration.discovered.push({x: nx, y: ny});
+                         newlyDiscovered = true;
+                     }
+                 }
+             });
+
+             if (newlyDiscovered) {
+                 logEvent("Faint paths through the void become clearer nearby.", "success");
+                 showNotification("Locus Revealed", "New areas near your current position are now visible.", "info");
+                 // Check first discovery achievement
+                 if (gameState.exploration.discovered.length > 0 && !gameState.achievements.find(a=>a.id === 'void_walker' && a.unlocked)) {
+                     unlockAchievement('void_walker');
+                 }
+             } else {
+                 logEvent("This area seems stable, offering no new paths for now.", "info");
+             }
+              renderMap(); // Update display
+         }
+
+         function encounterEntity() {
+            const loc = gameState.exploration.map[gameState.exploration.currentLocation.y][gameState.exploration.currentLocation.x];
+             const locType = locationTypes.find(l => l.id === loc.type);
+             const danger = locType ? locType.danger : 1;
+
+             const possibleEnemies = enemyTemplates.filter(e => e.locations.includes(loc.type) && e.level <= (danger + 1)); // Allow slightly higher level enemies
+
+             if (possibleEnemies.length === 0) {
+                 logEvent("An eerie silence hangs in the void, but nothing manifests.", "info");
+                 return;
+             }
+
+             const enemyTemplate = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)];
+             const enemy = {
+                 ...JSON.parse(JSON.stringify(enemyTemplate)), // Deep copy
+                 maxHealth: enemyTemplate.health, // Ensure maxHealth is set
+             };
+             startCombat(enemy);
+         }
+
+        function movePlayer(newX, newY) {
+            // Basic distance check (allow only adjacent moves for now)
+            const dx = Math.abs(newX - gameState.exploration.currentLocation.x);
+            const dy = Math.abs(newY - gameState.exploration.currentLocation.y);
+
+            if(gameState.exploration.inCombat) {
+                 showNotification("Cannot Move", "You are engaged in a confrontation!", "error");
+                 return;
+            }
+            if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                // Mark previous location as visited before moving
+                const currentLoc = gameState.exploration.currentLocation;
+                 if (!gameState.exploration.visited.some(l => l.x === currentLoc.x && l.y === currentLoc.y)) {
+                    gameState.exploration.visited.push({...currentLoc});
+                 }
+                 gameState.exploration.map[currentLoc.y][currentLoc.x].explored = true;
+
+                // Move player
+                gameState.exploration.currentLocation = { x: newX, y: newY };
+                playSound('generic_click'); // Placeholder move sound
+                updateExplorationStatus();
+                renderMap();
+
+                // Remove location from 'discovered' if it's now visited
+                gameState.exploration.discovered = gameState.exploration.discovered.filter(d => d.x !== newX || d.y !== newY);
+
+                 // Chance of encounter upon entering a new square?
+                 const locType = locationTypes.find(l => l.id === gameState.exploration.map[newY][newX].type);
+                 if (locType && Math.random() < (locType.danger * 0.15)) { // e.g. 15% chance per danger level
+                   encounterEntity();
+                 }
+
+            } else if (dx === 0 && dy === 0) {
+                // Clicked on current square - do nothing or maybe trigger a specific search?
+            } else {
+                showNotification("Cannot Traverse", "You cannot reach that locus directly.", "warning");
+            }
+        }
+
+
+        function updateExplorationStatus() {
+            const loc = gameState.exploration.map[gameState.exploration.currentLocation.y][gameState.exploration.currentLocation.x];
+            const locType = locationTypes.find(l => l.id === loc.type) || {name: 'Unknown Void', description: 'An uncharted area.'};
+            elements.currentLocation.textContent = locType.name;
+            elements.locationDescription.textContent = locType.description;
+
+            // Show/hide return button
+            const isNexus = gameState.exploration.currentLocation.x === 7 && gameState.exploration.currentLocation.y === 7;
+            elements.btnReturnNexus.classList.toggle('hidden', isNexus);
+            elements.btnExplore.disabled = isNexus && !gameState.nexusStabilized; // Can't explore from unstable nexus?
+            elements.btnExplore.classList.toggle('btn-disabled', elements.btnExplore.disabled);
+
+
+        }
+
+        function returnToNexus() {
+             if (gameState.exploration.inCombat) {
+                 showNotification('Cannot Return', 'Resolve the confrontation first.', 'error');
+                 return;
+             }
+             // Could add a cost or time delay later
+             logEvent("You focus your will and return to the Nexus Core.", "action");
+             movePlayer(7, 7); // Teleport back to center
+         }
+
+        // --- Combat Logic (Placeholders / Basic Structure) ---
+        function startCombat(enemy) {
+             gameState.exploration.inCombat = true;
+             gameState.exploration.currentEnemy = enemy;
+            elements.explorationEncounter.style.display = 'block';
+             updateCombatUI();
+             logEvent(`A wild <span class='text-danger-color'>${enemy.name}</span> manifests!`, "combat");
+             playSound('combat_start');
+             // Stop ambient music, play combat music?
+             if(gameState.settings.music) {
+                audioFiles.ambient_void.pause();
+                // audioFiles.combat_music.play(); // Need combat music file
+             }
+        }
+
+        function handleCombatAction(event) {
+             if (!event.target.closest('button[data-action]')) return;
+             const action = event.target.closest('button[data-action]').dataset.action;
+
+             if (!gameState.exploration.inCombat || !gameState.exploration.currentEnemy) return;
+
+             switch (action) {
+                 case 'attack': // Replaced with Arcane Bolt concept
+                     playerAttack();
+                     break;
+                 case 'defend': // Replaced with Mana Shield concept
+                     playerDefend();
+                     break;
+                 case 'spell': // New action type
+                     // Open spell selection modal or list? Needs implementation
+                     showNotification("Spellcasting", "Spell selection not yet implemented.", "info");
+                    // playerCastSpell(selectedSpellId); // Placeholder
+                     break;
+                 case 'item': // Replaced with Use Conduit / Item concept
+                     // Open inventory modal? Needs implementation
+                     showNotification("Use Conduit", "Item/Conduit usage not yet implemented.", "info");
+                    // playerUseItem(selectedItemId); // Placeholder
+                     break;
+                 case 'flee': // Replaced with Phase Out concept
+                     attemptFlee();
+                     break;
+             }
+             // If player action didn't end combat, trigger enemy turn
+            if(gameState.exploration.inCombat) {
+                setTimeout(enemyTurn, 500); // Small delay for readability
+            }
+        }
+
+        function playerAttack() {
+             const enemy = gameState.exploration.currentEnemy;
+             const playerPower = gameState.player.spellPower + (gameState.player.focus?.effects?.spellPower || 0);
+             const damage = Math.max(1, playerPower - (enemy.defense || 0) + rollDamageVariance(playerPower));
+
+            enemy.health -= damage;
+             logCombat(`You cast Arcane Bolt dealing ${damage} damage to ${enemy.name}.`, 'player');
+             spawnDamageText(damage, elements.combatEnemyContainer); // Visual effect
+             playSound('spell_cast_bolt'); // Example sound
+
+             checkCombatEnd();
+         }
+        function playerDefend() {
+             // Apply a temporary 'defending' status effect
+             const defenseBonus = 2 + Math.floor(gameState.player.resistance / 2);
+             // gameState.player.effects.push({id: 'defending', type:'buff', duration: 1, value: defenseBonus }); // Lasts 1 turn
+             logCombat(`You raise a Mana Shield, increasing resistance!`, 'player');
+             // Need visual indicator for status effects
+         }
+        function attemptFlee() {
+             const fleeChance = 0.5 + ( (gameState.player.health / gameState.player.maxHealth) * 0.2 ); // Easier to flee at high health?
+             if (Math.random() < fleeChance) {
+                logCombat(`You phase out of the confrontation!`, 'success');
+                 endCombat(false); // Player fled
+             } else {
+                 logCombat(`The ${gameState.exploration.currentEnemy.name} prevents your escape!`, 'warning');
+             }
+         }
+
+        function enemyTurn() {
+            if (!gameState.exploration.inCombat || !gameState.exploration.currentEnemy) return;
+             const enemy = gameState.exploration.currentEnemy;
+             const enemyAttack = enemy.attack || 3;
+            let playerResist = gameState.player.resistance + (gameState.player.ward?.effects?.resistance || 0);
+
+            // Check if player is defending
+             // const defendingEffect = gameState.player.effects.find(e => e.id === 'defending');
+            // if(defendingEffect) playerResist += defendingEffect.value;
+
+             const damage = Math.max(1, enemyAttack - playerResist + rollDamageVariance(enemyAttack));
+
+             gameState.player.health -= damage;
+             logCombat(`${enemy.name} attacks, inflicting ${damage} damage!`, 'enemy');
+             spawnDamageText(damage, elements.mainGame); // Spawn text near player area (needs target element)
+             // Add enemy attack sound
+
+             // Enemy special abilities (placeholder)
+             if (enemy.special === 'mana_drain' && Math.random() < 0.3) {
+                 const drain = Math.ceil(enemyAttack * 0.5);
+                 gameState.player.mana = Math.max(0, gameState.player.mana - drain);
+                 logCombat(`${enemy.name} drains ${drain} mana!`, 'enemy');
+             }
+
+             // Clear defending status after enemy turn
+             // gameState.player.effects = gameState.player.effects.filter(e => e.id !== 'defending');
+
+             checkCombatEnd();
+             updateCombatUI(); // Update health bars etc.
+         }
+
+
+         function checkCombatEnd() {
+             const enemy = gameState.exploration.currentEnemy;
+             if (enemy && enemy.health <= 0) {
+                 logCombat(`${enemy.name} dissipates!`, 'success');
+                 endCombat(true); // Player won
+                 unlockAchievement('entity_subdued');
+             } else if (gameState.player.health <= 0) {
+                 logCombat("Your focus shatters! Reality collapses...", 'error');
+                 // Game Over sequence needed
+                 gameOver();
+            }
+         }
+
+         function endCombat(playerWon) {
+             gameState.exploration.inCombat = false;
+              const enemy = gameState.exploration.currentEnemy;
+             gameState.exploration.currentEnemy = null;
+            elements.explorationEncounter.style.display = 'none';
+             elements.combatLog.innerHTML = ''; // Clear log
+
+             if (playerWon && enemy && enemy.loot) {
+                playSound('combat_victory');
+                 let lootMessages = [];
+                 for(const [item, range] of Object.entries(enemy.loot)) {
+                     const amount = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+                     if(amount > 0 && addResource(item, amount)) {
+                        lootMessages.push(`${amount} ${getResourceInfo(item).name}`);
+                     }
+                 }
+                 if(lootMessages.length > 0) {
+                    const lootMsg = `The dissipated entity leaves behind: ${lootMessages.join(', ')}.`;
+                    logEvent(lootMsg, "success");
+                    showNotification("Essence Claimed", lootMsg, "success");
+                 }
+             } else if (!playerWon) { // Player fled or lost
+                 // Play flee sound or defeat sound
+             }
+
+             // Resume ambient music?
+              if(gameState.settings.music) {
+                // audioFiles.combat_music.pause();
+                 audioFiles.ambient_void.play().catch(e => console.warn("Autoplay prevented:", e));
+             }
+             updateUI(); // Update main UI
+         }
+
+         function updateCombatUI() {
+             if (!gameState.exploration.inCombat || !gameState.exploration.currentEnemy) {
+                 elements.explorationEncounter.style.display = 'none';
+                 return;
+             }
+             elements.explorationEncounter.style.display = 'block';
+             const enemy = gameState.exploration.currentEnemy;
+             const healthPercent = (enemy.health / enemy.maxHealth) * 100;
+
+             elements.combatEnemyContainer.innerHTML = `
+                 <div class="combat-enemy">
+                     <div class="combat-enemy-info">
+                         <div class="combat-enemy-name">${enemy.name}</div>
+                         <div class="combat-enemy-health flex items-center">
+                             <div class="combat-enemy-health-bar mr-2">
+                                 <div class="combat-enemy-health-value" style="width: ${healthPercent}%"></div>
+                             </div>
+                             <span class="text-sm">${Math.ceil(enemy.health)}/${enemy.maxHealth}</span>
+                         </div>
+                         <!-- Add space for enemy status effects -->
+                     </div>
+                     <!-- Add Enemy Visual Placeholder? -->
+                     <div class="text-5xl opacity-50"><i class="fas fa-skull"></i></div>
+                 </div>`;
+
+                // Update player combat status (needs a dedicated area)
+                // document.getElementById('player-combat-health').textContent = Math.ceil(gameState.player.health);
+                // document.getElementById('player-combat-mana').textContent = Math.floor(gameState.player.mana);
+
+             // Disable/enable combat buttons based on mana cost, cooldowns etc.
+             // buttons... disabled = gameState.player.mana < spellCost...
+         }
+
+         function logCombat(message, type) { // combat log uses specific classes
+            const logItem = document.createElement('div');
+            logItem.className = `combat-log-item ${type}`; // player, enemy, system, info etc.
+            logItem.textContent = message;
+            elements.combatLog.appendChild(logItem);
+            elements.combatLog.scrollTop = elements.combatLog.scrollHeight;
+         }
+
+        function rollDamageVariance(baseDamage) {
+             // Simple variance: +/- 10% random variance
+             const variance = baseDamage * 0.1;
+             return Math.floor(Math.random() * (variance * 2 + 1)) - variance;
+         }
+
+         function spawnDamageText(value, targetElement) {
+             if (!gameState.settings.visualEffects || !targetElement) return;
+             const textElement = document.createElement('div');
+             textElement.textContent = value;
+            textElement.className = value > 0 ? 'damage-text' : 'heal-text'; // Basic styling based on value
+
+             // Position randomly near the target element
+             const rect = targetElement.getBoundingClientRect();
+             const x = rect.left + window.scrollX + (rect.width * Math.random() * 0.8 + rect.width * 0.1);
+             const y = rect.top + window.scrollY + (rect.height * Math.random() * 0.5);
+             textElement.style.position = 'absolute';
+             textElement.style.left = `${x}px`;
+             textElement.style.top = `${y}px`;
+            textElement.style.zIndex = '1001'; // Above most UI
+
+             document.body.appendChild(textElement);
+             // Remove after animation ends
+             textElement.addEventListener('animationend', () => textElement.remove());
+         }
+
+
+        // --- Achievements ---
+         function unlockAchievement(id) {
+             const achievement = gameState.achievements.find(a => a.id === id);
+             if (achievement && !achievement.unlocked) {
+                 achievement.unlocked = true;
+                 showNotification('Echoes of Fate', `Achievement Unlocked: ${achievement.name}!`, 'success', 7000);
+                 playSound('achievement');
+                 updateAchievementsDisplay(); // Update the modal if open
+             }
+         }
+
+         function updateAchievementsDisplay() {
+            if (!elements.achievementsContainer) return;
+            elements.achievementsContainer.innerHTML = ''; // Clear
+
+            gameState.achievements.forEach(ach => {
+                const div = document.createElement('div');
+                div.className = `achievement ${ach.unlocked ? 'unlocked' : 'locked'}`;
+                div.innerHTML = `
+                    <div class="achievement-icon"><i class="fas ${ach.icon}"></i></div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${ach.name}</div>
+                        <div class="achievement-description">${ach.description}</div>
+                    </div>
+                    ${ach.unlocked ? '<div class="text-accent-color"><i class="fas fa-check-circle"></i></div>' : ''}
+                `;
+                elements.achievementsContainer.appendChild(div);
+            });
+         }
+
+        // --- Modals ---
+         function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                 // Update content if needed (e.g., save slots)
+                if(modalId === 'save-modal') updateSaveLoadSlots('save');
+                else if(modalId === 'load-modal') updateSaveLoadSlots('load');
+                 else if(modalId === 'achievements-modal') updateAchievementsDisplay();
+
+                modal.classList.add('show');
+                 playSound('generic_click'); // Or a modal open sound
+             }
+         }
+         function closeModal() {
+             document.querySelectorAll('.modal-backdrop.show').forEach(modal => {
+                 modal.classList.remove('show');
+             });
+             playSound('generic_click'); // Or a modal close sound
+         }
+         function openSaveModal() { openModal('save-modal'); }
+         function openLoadModal() { openModal('load-modal'); }
+         function openSettingsModal() { openModal('settings-modal'); }
+         function openAchievementsModal() { openModal('achievements-modal'); }
+         function openRestartModal() { openModal('restart-modal'); }
+         function openGrimoireModal() { openModal('grimoire-modal'); } // New
+
+        // --- Settings ---
+        function loadSettings() {
+             const savedSettings = localStorage.getItem('arcaneChamberSettings');
+             if (savedSettings) {
+                 const parsed = JSON.parse(savedSettings);
+                 // Merge saved settings with defaults, handling potential missing keys
+                 gameState.settings = { ...gameState.settings, ...parsed };
+             }
+             applySettings(); // Apply loaded settings to UI controls and game
+         }
+
+        function saveSettings() {
+             localStorage.setItem('arcaneChamberSettings', JSON.stringify(gameState.settings));
+        }
+
+        function updateSettings(event) {
+             const settingId = event.target.id;
+             const isChecked = event.target.checked;
+             switch(settingId) {
+                 case 'toggle-sound-effects': gameState.settings.soundEffects = isChecked; break;
+                 case 'toggle-music':
+                     gameState.settings.music = isChecked;
+                     if (isChecked && gameState.started && !audioFiles.ambient_void.playing) audioFiles.ambient_void.play().catch(e=>{});
+                     else if (!isChecked) audioFiles.ambient_void.pause();
+                     break;
+                 case 'toggle-high-contrast':
+                     gameState.settings.highContrast = isChecked;
+                     document.body.classList.toggle('high-contrast', isChecked);
+                     break;
+                 case 'toggle-screen-reader': gameState.settings.screenReader = isChecked; break; // Needs actual implementation
+                 case 'toggle-visual-effects': gameState.settings.visualEffects = isChecked; break;
+                 case 'toggle-autosave': gameState.settings.autosave = isChecked; break;
+            }
+             saveSettings();
+        }
+
+        function updateVolume() {
+             const volume = elements.volumeSlider.value / 100;
+             gameState.settings.volume = volume;
+             elements.volumeValue.textContent = `${Math.round(volume * 100)}%`;
+             // Adjust currently playing sounds (if any)
+             Object.values(audioFiles).forEach(audio => audio.volume = volume);
+             // Note: Need to apply volume when *starting* sounds too in playSound()
+             saveSettings(); // Save volume change
+         }
+
+        function applySettings() {
+            // Update UI controls
+            elements.toggleSoundEffects.checked = gameState.settings.soundEffects;
+            elements.toggleMusic.checked = gameState.settings.music;
+            elements.volumeSlider.value = gameState.settings.volume * 100;
+            elements.volumeValue.textContent = `${Math.round(gameState.settings.volume * 100)}%`;
+            elements.toggleHighContrast.checked = gameState.settings.highContrast;
+            elements.toggleScreenReader.checked = gameState.settings.screenReader;
+            elements.toggleVisualEffects.checked = gameState.settings.visualEffects;
+            elements.toggleAutosave.checked = gameState.settings.autosave;
+
+            // Apply visual/audio settings
+            document.body.classList.toggle('high-contrast', gameState.settings.highContrast);
+             if (gameState.settings.music && gameState.started) {
+                 audioFiles.ambient_void.play().catch(e => console.warn("Autoplay blocked:", e));
+             } else {
+                 audioFiles.ambient_void.pause();
+             }
+         }
+
+
+        // --- Save/Load (Basic Structure - Needs Implementation) ---
+        const SAVE_SLOT_PREFIX = 'arcaneChamberSave_';
+        const MAX_SAVES = 5;
+
+        function updateSaveLoadSlots(mode) { // 'save' or 'load'
+            const container = (mode === 'save') ? elements.saveSlots : elements.loadSlots;
+             if (!container) return;
+             container.innerHTML = '';
+
+            for (let i = 1; i <= MAX_SAVES; i++) {
+                const slotKey = `${SAVE_SLOT_PREFIX}${i}`;
+                const savedData = localStorage.getItem(slotKey);
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'p-3 border rounded cursor-pointer transition hover:border-accent-color';
+                slotDiv.dataset.slot = i;
+
+                if (savedData) {
+                    try {
+                        const parsed = JSON.parse(savedData);
+                        // Basic info display
+                        const saveDate = new Date(parsed.saveTime || Date.now());
+                        slotDiv.classList.add('border-secondary-color');
+                        slotDiv.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <strong class="text-white">Slot ${i}</strong>
+                                <span class="text-xs text-gray-400">${saveDate.toLocaleString()}</span>
+                            </div>
+                            <div class="text-sm text-gray-300">Nexus: ${parsed.gameState?.storyline || 0}, Time: ${Math.floor((parsed.gameState?.gameTime || 0)/60)} min</div>
+                         `;
+                         if (mode === 'save') {
+                             slotDiv.addEventListener('click', () => saveGame(i, true)); // Add overwrite confirmation
+                         } else {
+                             slotDiv.addEventListener('click', () => loadGame(i));
+                         }
+                    } catch (e) {
+                        // Corrupted save slot
+                        slotDiv.classList.add('border-danger-color', 'bg-danger-color', 'bg-opacity-10');
+                        slotDiv.innerHTML = `<div class="text-danger-color">Slot ${i} - Corrupted Data</div>`;
+                        // Option to clear corrupted slot? localStorage.removeItem(slotKey);
+                    }
+                } else {
+                    // Empty slot
+                    slotDiv.classList.add('border-dashed', 'border-gray-600');
+                    slotDiv.innerHTML = `<div class="text-center text-gray-500">Empty Slot ${i}</div>`;
+                     if (mode === 'save') {
+                         slotDiv.addEventListener('click', () => saveGame(i));
+                     } else {
+                         slotDiv.style.cursor = 'not-allowed';
+                         slotDiv.classList.add('opacity-50');
+                     }
+                }
+                 container.appendChild(slotDiv);
+            }
+        }
+
+        function saveGame(slot, overwrite = false) {
+            if (overwrite) {
+                if (!confirm(`Overwrite save data in Slot ${slot}?`)) {
+                    return;
+                }
+            }
+            const saveData = {
+                 saveTime: Date.now(),
+                 version: gameState.version, // Store version for compatibility checks later
+                 gameState: gameState // Save the entire game state
+            };
+             try {
+                 localStorage.setItem(`${SAVE_SLOT_PREFIX}${slot}`, JSON.stringify(saveData));
+                 showNotification('Inscribed', `Reality inscribed into Slot ${slot}.`, 'success');
+                 playSound('generic_click'); // Save sound?
+                 closeModal();
+             } catch (e) {
+                 console.error("Save failed:", e);
+                 showNotification('Inscription Failed', 'Could not save game state. Storage might be full.', 'error');
+             }
+        }
+
+        function loadGame(slot) {
+            const savedData = localStorage.getItem(`${SAVE_SLOT_PREFIX}${slot}`);
+             if (savedData) {
+                 try {
+                     const parsedData = JSON.parse(savedData);
+                     // VERY Basic version check (needs more robust logic)
+                     if (parsedData.version !== gameState.version) {
+                        if(!confirm(`Save is from a different version (${parsedData.version}). Load anyway? May cause issues.`)){
+                            return;
+                        }
+                     }
+
+                    // --- CRITICAL: Restore Game State ---
+                    // This needs careful handling to avoid breaking references or missing new properties added in updates.
+                    // A robust approach might involve merging properties rather than direct assignment,
+                    // or using a dedicated state hydration function.
+                     // For now, direct assignment (RISKY):
+                     Object.assign(gameState, parsedData.gameState);
+
+
+                     showNotification('Recalled', `Reality recalled from Slot ${slot}.`, 'success');
+                     playSound('generic_click'); // Load sound?
+                     closeModal();
+
+                     // --- Post-Load Initialization ---
+                     if (!gameState.started) { // If loading into a pre-start state
+                         elements.startScreen.classList.remove('hidden');
+                         elements.mainGame.classList.add('hidden');
+                     } else { // If loading into an active game state
+                        elements.startScreen.classList.add('hidden');
+                        elements.mainGame.classList.remove('hidden');
+                        // Trigger the current story event based on loaded state (might need a gameState.currentStoryEventId property)
+                        // triggerStoryEvent(gameState.currentStoryEventId || 'fallback_event_id');
+                        applySettings(); // Re-apply loaded settings
+                        updateUI(); // Refresh entire UI
+                         renderMap(); // Redraw map
+                         updateChamberVisuals(); // Update room visuals
+
+                        // Ensure game loop is running if loaded state was active
+                        requestAnimationFrame(gameLoop);
+                     }
+
+
+                 } catch (e) {
+                     console.error("Load failed:", e);
+                     showNotification('Recall Failed', 'Could not load game state. Data may be corrupted.', 'error');
+                 }
+             }
+         }
+
+         function autoSaveGame() {
+             console.log("Autosaving..."); // Use Slot 0 for autosave?
+             saveGame(0, true); // Silently overwrite autosave slot
+         }
+
+         function checkForSavedGames() {
+            // See if autosave (slot 0) exists
+            const autoSaveData = localStorage.getItem(`${SAVE_SLOT_PREFIX}0`);
+            if(autoSaveData) {
+                 // Offer to load autosave on start screen?
+                 // Example: Add a 'Continue Autosave' button
+                const continueBtn = document.createElement('button');
+                continueBtn.id = 'btn-continue-autosave';
+                continueBtn.className = 'btn btn-secondary text-lg px-6 py-3 mt-4';
+                continueBtn.innerHTML = 'Continue Last Session <span class="keybinding">C</span>';
+                continueBtn.addEventListener('click', () => loadGame(0));
+                elements.startScreen.appendChild(continueBtn);
+             }
+         }
+
+        // --- Restart Game ---
+         function restartGame() {
+             if (confirm("Are you absolutely sure you want to unravel this reality?")) {
+                // Ideally, reset gameState to its initial default state
+                 // For now, just reload the page
+                 localStorage.removeItem(`${SAVE_SLOT_PREFIX}0`); // Clear autosave on manual restart
+                 location.reload();
+             }
+         }
+
+        // --- Game Over ---
+        function gameOver() {
+             gameState.started = false; // Stop the game loop
+             // Show a game over message/modal
+             logEvent("Reality dissolves into the void...", "error");
+             showNotification("Focus Shattered", "Your journey ends here. Restart to try again.", "error", 15000);
+             // Disable most buttons except maybe load/restart
+             elements.mainGame.style.pointerEvents = 'none'; // Disable clicks on main game area
+             elements.mainGame.style.opacity = '0.5';
+        }
+
+        // --- Utility Functions ---
+        function switchTab(tabId) {
+             elements.tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
+             elements.tabContents.forEach(content => content.classList.toggle('active', content.id === `tab-${tabId}`));
+              // Render map if switching to exploration tab
+             if (tabId === 'exploration') renderMap();
+         }
+
+         function handleKeyPress(event) {
+             if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                 return; // Ignore keypresses if user is typing in an input field
+             }
+             if (event.target.closest('.modal-backdrop.show')) {
+                 return; // Ignore background keypresses if a modal is open
+             }
+
+             const key = event.key.toUpperCase();
+             // Add keybindings based on `.keybinding` spans or explicit mapping
+             switch(key) {
+                 case 'ENTER':
+                     if (!gameState.started) elements.btnStartGame.click();
+                     break;
+                 case 'G':
+                     if (gameState.started) elements.btnGatherMotes.click();
+                     break;
+                 case 'C':
+                     if (gameState.started) elements.btnChannelMana.click();
+                     break;
+                 case 'X':
+                     if(document.querySelector('.tab-button[data-tab="exploration"].active')) elements.btnExplore.click();
+                    break;
+                 case 'N': // Return to Nexus
+                     if(document.querySelector('.tab-button[data-tab="exploration"].active')) elements.btnReturnNexus.click();
+                    break;
+                 // Add combat keys A, D, S, I, R if combat is active?
+             }
+
+            // Try to find button with matching keybinding span (limited applicability)
+            // const btn = document.querySelector(`.keybinding:contains('${key}')`)?.closest('button');
+            // if (btn && !btn.disabled) {
+            //     btn.click();
+            //     event.preventDefault();
+            // }
+         }
+
+         // --- Initial Load ---
+         document.addEventListener('DOMContentLoaded', initGame);
+
+    </script>
+
+</body>
+</html>
