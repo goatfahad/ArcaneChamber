@@ -284,7 +284,42 @@ function updateGameTick() {
 }
 
 function startGame() {
-     // ... existing startGame ...
+     console.log("startGame function called.");
+     if (gameState.started) {
+         console.log("Game already started. Exiting startGame.");
+         return;
+     }
+
+     gameState.started = true;
+     console.log("gameState.started set to true.");
+
+     if (elements.startScreen && elements.mainGame) {
+        elements.startScreen.classList.add('hidden');
+        console.log("Start screen hidden class added.");
+        elements.mainGame.classList.remove('hidden');
+        console.log("Main game hidden class removed.");
+     } else {
+        console.error("Start screen or Main game element not found in startGame!");
+        // Potentially halt further execution if critical UI is missing
+        // return;
+     }
+
+
+     playSound('focus_mana');
+
+     triggerStoryEvent('start');
+     console.log("Initial story event 'start' triggered.");
+
+     if (gameState.settings.music) {
+         console.log("Attempting to play ambient void music.");
+         audioFiles.ambient_void.play().catch(e => console.warn("Autoplay prevented for ambient_void:", e));
+     }
+
+     updateResourcesDisplay();
+     updateUI();
+
+     console.log("Calling gameLoop to start the main loop.");
+     gameLoop();
 }
 
 // --- Sound Handling ---
