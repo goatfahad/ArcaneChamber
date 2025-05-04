@@ -1,0 +1,426 @@
+/* --- Move all content from <style>...</style> (lines 11-488) in index.html here --- */
+:root {
+    /* --- Magical Theme Colors --- */
+    --text-color: #e0e0e0; /* Lighter grey for text */
+    --bg-color: #1a122a; /* Deep purple background */
+    --primary-color: #8a2be2; /* Vibrant Purple */
+    --secondary-color: #00bcd4; /* Cyan / Teal */
+    --accent-color: #ffeb3b; /* Gold / Yellow Accent */
+    --success-color: #4caf50; /* Mystical Green */
+    --danger-color: #f44336; /* Warning Red */
+    --muted-color: #757575; /* Muted grey */
+    --border-color: #4a3f5e; /* Darker purple/grey border */
+
+    /* --- Resource Specific Colors (Examples) --- */
+    --mana-motes-color: var(--secondary-color); /* Teal for basic mana */
+    --ether-wisps-color: #ffffff; /* White/Silver for ether */
+    --crystal-shards-color: #ba68c8; /* Light Purple for crystals */
+    --soul-fragments-color: var(--danger-color); /* Red for souls */
+    --shadow-essence-color: #616161; /* Dark Grey for shadow */
+    --infused-stone-color: #795548; /* Brownish for stone */
+    --arcane-dust-color: var(--accent-color); /* Gold for dust */
+    --starlight-essence-color: var(--primary-color); /* Main Purple for starlight */
+    --spell-component-color: var(--success-color); /* Green for components */
+    --rune-color: #ff9800; /* Orange for runes */
+}
+
+@keyframes manaPulse {
+    0% { text-shadow: 0 0 4px rgba(0, 188, 212, 0.4); }
+    50% { text-shadow: 0 0 10px rgba(0, 188, 212, 0.7); }
+    100% { text-shadow: 0 0 4px rgba(0, 188, 212, 0.4); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+
+@keyframes breathe {
+    0% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0.7; transform: scale(1); }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shake { /* Keep shake for emphasis if needed */
+    0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inconsolata', monospace;
+    min-height: 100vh;
+    transition: background-color 0.5s, color 0.5s;
+    cursor: default;
+    overflow-x: hidden;
+     /* Add subtle pattern or gradient */
+    background-image: radial-gradient(circle at top left, rgba(138, 43, 226, 0.1), transparent 40%),
+                      radial-gradient(circle at bottom right, rgba(0, 188, 212, 0.1), transparent 40%);
+}
+
+body.high-contrast { /* Keep high contrast mode */
+    --text-color: #ffffff; --bg-color: #000000; --border-color: #ffffff;
+    background-image: none;
+}
+
+body.light-theme {
+    --text-color: #212121; /* Dark Grey for text */
+    --bg-color: #f5f5f5; /* Light Grey background */
+    --primary-color: #673ab7; /* Deep Purple */
+    --secondary-color: #009688; /* Teal */
+    --accent-color: #ffc107; /* Amber */
+    --success-color: #4caf50; /* Green */
+    --danger-color: #f44336; /* Red */
+    --muted-color: #616161; /* Medium Grey */
+    --border-color: #bdbdbd; /* Lighter Grey border */
+
+    /* --- Resource Colors (Adjust for light background visibility) --- */
+    --mana-motes-color: var(--secondary-color);
+    --ether-wisps-color: #424242; /* Dark grey instead of white */
+    --crystal-shards-color: #ab47bc; /* Slightly darker purple */
+    --soul-fragments-color: var(--danger-color);
+    --shadow-essence-color: #424242; /* Dark grey */
+    --infused-stone-color: #795548; /* Brownish */
+    --arcane-dust-color: #b8860b; /* Darker Gold */
+    --starlight-essence-color: var(--primary-color);
+    --spell-component-color: var(--success-color);
+    --rune-color: #ff9800;
+
+    /* Adjust component backgrounds for visibility */
+    background-image: radial-gradient(circle at top left, rgba(103, 58, 183, 0.05), transparent 40%),
+                      radial-gradient(circle at bottom right, rgba(0, 150, 136, 0.05), transparent 40%);
+
+    /* Adjust specific component backgrounds */
+    .btn { background-color: rgba(255,255,255,0.4); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .btn:hover { background-color: rgba(0, 150, 136, 0.1); box-shadow: 0 0 8px rgba(0, 150, 136, 0.3); }
+    .btn-disabled { background-color: rgba(0,0,0,0.05); color: var(--muted-color); }
+    .progress-container { background-color: rgba(0,0,0,0.1); border-color: var(--border-color); }
+    .resource-container { background-color: rgba(255,255,255,0.3); box-shadow: 0 0 3px rgba(0,0,0,0.05); }
+    .resource-container:hover { background-color: rgba(0, 150, 136, 0.03); }
+    .notification { background-color: rgba(245, 245, 245, 0.95); box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+    .room { background-color: rgba(255,255,255,0.4); box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
+    .event-log { background-color: rgba(255,255,255,0.2); }
+    .map-container { background-color: rgba(255,255,255,0.3); }
+    .map-cell { border: 1px solid rgba(103, 58, 183, 0.2); }
+    .map-cell.unexplored { background-color: rgba(0, 0, 0, 0.1); }
+    .map-cell.visited { background-color: rgba(103, 58, 183, 0.08); }
+    .map-cell.discovered { background-color: rgba(0, 150, 136, 0.08); }
+    .map-cell.poi { background-color: rgba(76, 175, 80, 0.1); border: 1px solid var(--success-color); }
+    .tab-button.active { background-color: rgba(255,255,255,0.3); }
+    .combat-container { background-color: rgba(244, 67, 54, 0.03); }
+    .combat-enemy { border-bottom: 1px dashed var(--border-color); }
+    .combat-enemy-health-bar { background-color: var(--border-color); }
+    .combat-log { background-color: rgba(255,255,255,0.2); }
+    .achievement { background-color: rgba(255,255,255,0.3); }
+    .achievement.unlocked { background-color: rgba(255, 193, 7, 0.05); }
+    .modal-content { background-color: var(--bg-color); border: 1px solid var(--accent-color); box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); }
+    .modal-header, .modal-footer { border-color: var(--border-color); }
+    .loading-screen { background-color: var(--bg-color); }
+    .settings-row { border-bottom: 1px dashed var(--border-color); }
+    .toggle-slider { background-color: var(--border-color); }
+    .toggle-slider:before { background-color: var(--text-color); }
+    input:checked + .toggle-slider { background-color: var(--primary-color); }
+    input:checked + .toggle-slider:before { background-color: var(--accent-color); }
+    .volume-slider { background: linear-gradient(90deg, var(--border-color), var(--secondary-color)); }
+    .sidebar { background-color: var(--bg-color); border-left-color: var(--border-color); box-shadow: -3px 0 10px rgba(0,0,0,0.1); }
+    .sidebar-toggle { background-color: rgba(245, 245, 245, 0.8); color: var(--text-color); border-color: var(--border-color); box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+    .sidebar-header { border-bottom-color: var(--border-color); }
+    .keybinding { background-color: var(--border-color); color: var(--accent-color); border-color: rgba(184, 134, 11, 0.3); }
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+#game-container { opacity: 0; transition: opacity 0.5s ease-in-out; }
+#game-container.visible { opacity: 1; }
+
+.mana-active { color: var(--primary-color); animation: manaPulse 2.5s infinite; }
+
+/* Button Styling */
+.btn {
+    background-color: rgba(0,0,0,0.2); /* Slightly transparent dark background */
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inconsolata', monospace;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.btn:hover {
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+    background-color: rgba(0, 188, 212, 0.1); /* Cyan highlight on hover */
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+}
+.btn:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.btn::after { /* Ripple effect on click */
+    content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+    background: rgba(255, 255, 255, 0.3); opacity: 0; border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%); transform-origin: 50% 50%;
+}
+.btn:focus:not(:active)::after { animation: ripple 0.6s ease-out; }
+
+.btn-primary { border-color: var(--primary-color); color: var(--primary-color); }
+.btn-primary:hover { background-color: rgba(138, 43, 226, 0.15); box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); }
+.btn-secondary { border-color: var(--secondary-color); color: var(--secondary-color); }
+.btn-secondary:hover { background-color: rgba(0, 188, 212, 0.15); box-shadow: 0 0 10px rgba(0, 188, 212, 0.5); }
+/* ... other button types (success, danger) with potentially updated hover effects ... */
+.btn-disabled { border-color: var(--muted-color); color: var(--muted-color); cursor: not-allowed; background-color: rgba(0,0,0,0.1); box-shadow: none; }
+.btn-disabled:hover { background-color: rgba(0,0,0,0.1); box-shadow: none; border-color: var(--muted-color); color: var(--muted-color); }
+
+/* Progress Bars */
+.progress-container { height: 6px; background-color: rgba(0,0,0,0.3); border-radius: 3px; margin: 0.5rem 0; overflow: hidden; border: 1px solid var(--border-color); }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); border-radius: 2px; transition: width 0.3s ease; }
+.progress-bar.research { background: linear-gradient(90deg, var(--accent-color), var(--success-color)); }
+
+
+/* Resource Display */
+.resource-container { border: 1px solid var(--border-color); border-radius: 0.3rem; padding: 0.6rem; margin-bottom: 0.6rem; transition: all 0.3s; background-color: rgba(0,0,0,0.1); }
+.resource-container:hover { border-color: var(--secondary-color); background-color: rgba(0, 188, 212, 0.05); box-shadow: 0 0 5px rgba(0, 188, 212, 0.3); }
+.resource-name { font-weight: bold; display: flex; align-items: center; }
+.resource-name i { margin-right: 0.6rem; width: 1.1em; text-align: center; }
+.resource-value { text-align: right; font-family: 'Source Sans Pro', sans-serif; font-size: 1.1em; }
+
+/* Notification */
+.notification { position: fixed; top: 20px; right: 20px; background-color: rgba(26, 18, 42, 0.9); color: var(--text-color); padding: 1rem; border-radius: 0.25rem; border-left: 4px solid var(--primary-color); z-index: 1000; opacity: 0; transform: translateX(100%); transition: all 0.3s ease-in-out; max-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+.notification.show { opacity: 1; transform: translateX(0); }
+.notification-title { font-weight: bold; margin-bottom: 0.5rem; color: var(--accent-color); }
+
+/* Room Display */
+.room {
+    min-height: 200px; border: 1px solid var(--border-color); border-radius: 0.25rem;
+    padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden;
+    background-color: rgba(0,0,0,0.15);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+}
+.room-title { font-size: 1.6rem; margin-bottom: 1rem; font-weight: bold; color: var(--primary-color); text-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+.room-description { margin-bottom: 1.5rem; line-height: 1.6; font-size: 1.1em; }
+
+/* Rune/Mana Effect (Replacing Fire Effect) */
+.rune-glow-effect {
+    position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+    width: 80%; height: 120px;
+    background: radial-gradient(ellipse at center bottom, rgba(0, 188, 212, 0.35) 0%, rgba(0, 188, 212, 0) 70%);
+    animation: breathe 4s infinite ease-in-out;
+    pointer-events: none; opacity: 0; transition: opacity 1s;
+    border-radius: 50%;
+}
+.chamber-active .rune-glow-effect { opacity: 1; } /* Use chamber-active class */
+
+
+/* Event Log */
+.event-log { height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.4; background-color: rgba(0,0,0,0.1); }
+.event-log::-webkit-scrollbar { width: 8px; }
+.event-log::-webkit-scrollbar-track { background: var(--bg-color); }
+.event-log::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 4px; border: 2px solid var(--bg-color); }
+.event-log-item { margin-bottom: 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px dashed var(--border-color); animation: fadeIn 0.5s ease-in-out; }
+.event-log-item:last-child { border-bottom: none; }
+.event-timestamp { color: var(--muted-color); font-size: 0.85rem; margin-right: 0.5em; }
+.event-log-item.poi { color: var(--success-color); font-style: italic; } /* Style for POI log messages */
+
+/* Map Container */
+.map-container { height: 350px; border: 1px solid var(--border-color); border-radius: 0.25rem; margin-bottom: 1rem; position: relative; overflow: hidden; display: none; background-color: rgba(0,0,0,0.2); }
+.map-container.visible { display: block; }
+.map-grid { display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); height: 100%; width: 100%; }
+.map-cell { border: 1px solid rgba(138, 43, 226, 0.2); /* Purple grid lines */ position: relative; transition: all 0.2s; }
+.map-cell.unexplored { background-color: rgba(0, 0, 0, 0.8); }
+.map-cell.current { border: 2px solid var(--accent-color); /* Gold border for current */ box-shadow: 0 0 10px var(--accent-color); z-index: 10;}
+.map-cell.visited { background-color: rgba(138, 43, 226, 0.1); } /* Visited cells */
+.map-cell.discovered { background-color: rgba(0, 188, 212, 0.1); } /* Discovered but not visited */
+.map-cell.poi {
+    /* Subtle indicator for POI cells */
+    /* border: 1px solid var(--success-color); */ /* Already have this */
+    box-shadow: inset 0 0 5px rgba(76, 175, 80, 0.4); /* Inner glow maybe? */
+}
+.map-cell-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1rem; color: var(--text-color); opacity: 0.8; }
+
+/* Style for the absolute positioned POI icon (adjust as needed) */
+.map-cell .fa-star { /* Targeting the icon class */
+    filter: drop-shadow(0 0 2px var(--bg-color)); /* Make icon pop a bit */
+}
+
+/* Tabs */
+.tab-container { margin-bottom: 1rem; }
+.tab-buttons { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+.tab-button { padding: 0.7rem 1.2rem; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: all 0.2s; color: var(--muted-color); }
+.tab-button:hover { color: var(--secondary-color); }
+.tab-button.active { border-color: var(--border-color); border-bottom: 1px solid var(--bg-color); color: var(--primary-color); background-color: rgba(0,0,0,0.1); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+/* Add focus styles for keyboard navigation */
+.tab-button:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    color: var(--accent-color);
+}
+
+
+/* Combat Styles */
+.combat-container { border: 1px solid var(--danger-color); border-radius: 0.25rem; padding: 1rem; margin-bottom: 1rem; background-color: rgba(244, 67, 54, 0.05); }
+.combat-enemy { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border-color); }
+.combat-enemy-info { display: flex; flex-direction: column; }
+.combat-enemy-name { font-weight: bold; margin-bottom: 0.25rem; color: var(--danger-color); font-size: 1.2em; }
+.combat-enemy-health-bar { width: 150px; height: 8px; background-color: var(--border-color); border-radius: 4px; margin-right: 0.5rem; overflow: hidden; }
+.combat-enemy-health-value { height: 100%; background-color: var(--danger-color); border-radius: 4px; transition: width 0.3s ease; }
+.combat-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.combat-log { margin-top: 1rem; max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; font-size: 0.9rem; background-color: rgba(0,0,0,0.1); }
+.combat-log-item { margin-bottom: 0.3rem; animation: fadeIn 0.3s ease-in-out; }
+.combat-log-item.player { color: var(--secondary-color); } /* Player actions in cyan */
+.combat-log-item.enemy { color: var(--danger-color); } /* Enemy actions in red */
+.combat-log-item.system { color: var(--success-color); } /* System messages in green */
+.combat-log-item.info { color: var(--accent-color); } /* Info messages in gold */
+
+/* Achievements */
+.achievement { border: 1px solid var(--border-color); border-radius: 0.25rem; padding: 0.8rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; background-color: rgba(0,0,0,0.1); }
+.achievement.unlocked { border-left: 4px solid var(--accent-color); background-color: rgba(255, 235, 59, 0.05); }
+.achievement.locked { filter: grayscale(80%); opacity: 0.6; }
+.achievement-icon { width: 45px; height: 45px; background-color: var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-size: 1.5em; }
+.achievement.unlocked .achievement-icon { background-color: var(--accent-color); color: var(--bg-color); }
+.achievement-info { flex: 1; }
+.achievement-name { font-weight: bold; margin-bottom: 0.25rem; color: var(--accent-color); }
+.achievement.locked .achievement-name { color: var(--muted-color); }
+.achievement-description { font-size: 0.9rem; color: var(--muted-color); }
+.achievement.unlocked .achievement-description { color: var(--text-color); }
+
+
+/* Modals */
+.modal-backdrop { /* Kept same structure, colors adapt */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(26, 18, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.modal-backdrop.show { opacity: 1; pointer-events: auto; }
+.modal-content { background-color: var(--bg-color); border: 1px solid var(--accent-color); box-shadow: 0 0 20px rgba(255, 235, 59, 0.3); border-radius: 0.25rem; padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s ease; }
+.modal-backdrop.show .modal-content { transform: scale(1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); }
+.modal-title { font-weight: bold; font-size: 1.5rem; color: var(--primary-color); }
+.modal-close { background: none; border: none; color: var(--muted-color); cursor: pointer; font-size: 2rem; padding: 0; line-height: 1; transition: color 0.2s; }
+.modal-close:hover { color: var(--accent-color); }
+.modal-body { margin-bottom: 1rem; line-height: 1.6; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); }
+
+
+/* Loading Screen */
+.loading-screen { /* Kept same structure, colors adapt */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease-in-out;
+}
+.loading-text { font-size: 2.5rem; margin-bottom: 2rem; opacity: 0.8; color: var(--primary-color); text-shadow: 0 0 8px rgba(138, 43, 226, 0.5); }
+.loading-dots { display: flex; }
+.loading-dot { width: 14px; height: 14px; border-radius: 50%; background-color: var(--secondary-color); margin: 0 7px; animation: loading-dot-animation 1.4s infinite ease-in-out both; }
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes loading-dot-animation { 0%, 80%, 100% { transform: scale(0); box-shadow: none; } 40% { transform: scale(1.1); box-shadow: 0 0 10px var(--secondary-color); } }
+
+
+/* Ripple Effect */
+@keyframes ripple { /* Kept same structure */
+    0% { transform: scale(0, 0) translate(-50%, -50%); opacity: 0.5; } 20% { transform: scale(25, 25) translate(-50%, -50%); opacity: 0.5; } 100% { opacity: 0; transform: scale(40, 40) translate(-50%, -50%); }
+}
+
+/* Responsive */
+@media (max-width: 768px) { /* Kept same structure */
+    .container { padding: 0.5rem; } .btn { padding: 0.4rem 0.8rem; font-size: 0.9rem; } .room { min-height: 150px; } .room-title { font-size: 1.3rem; } .event-log, .combat-log { height: 140px; } .map-container { height: 280px; } .tab-button { padding: 0.5rem 0.8rem; font-size: 0.9rem; }
+}
+/* Accessibility */
+@media (prefers-reduced-motion) { * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; } }
+.screen-reader-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* Settings Styles */
+.settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px dashed var(--border-color); }
+.settings-label { font-weight: bold; color: var(--secondary-color); }
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 24px; }
+.toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: var(--text-color); transition: .4s; border-radius: 50%; }
+input:checked + .toggle-slider { background-color: var(--primary-color); }
+input:checked + .toggle-slider:before { transform: translateX(26px); background-color: var(--accent-color); }
+.volume-control { display: flex; align-items: center; }
+.volume-slider {
+    width: 120px;
+    height: 6px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: linear-gradient(90deg, var(--border-color), var(--secondary-color));
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    cursor: pointer;
+    border: 1px solid var(--bg-color);
+    margin-top: -4px;
+}
+.volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    cursor: pointer;
+    border: none;
+}
+.volume-slider::-moz-range-track {
+    background: none;
+    border: none;
+}
+
+/* Sidebar */
+.sidebar-toggle { position: fixed; top: 15px; right: 15px; z-index: 100; background-color: rgba(26, 18, 42, 0.8); color: var(--text-color); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border-color); transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.sidebar-toggle:hover { border-color: var(--accent-color); color: var(--accent-color); }
+.sidebar { position: fixed; top: 0; right: -320px; width: 320px; height: 100%; background-color: var(--bg-color); border-left: 1px solid var(--border-color); z-index: 999; transition: right 0.3s ease; padding: 1.5rem; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.4); }
+.sidebar.open { right: 0; }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+.sidebar-title { font-weight: bold; font-size: 1.5rem; color: var(--primary-color); }
+.sidebar-close { /* Same as modal close */ }
+
+/* Choice Buttons */
+.choice-container { margin-top: 1.5rem; }
+.choice-btn { display: block; width: 100%; text-align: left; margin-bottom: 0.7rem; animation: fadeIn 0.4s ease-in-out; font-size: 1.05em; padding: 0.7rem 1.2rem; }
+
+/* Status Effects */
+.status-effect { display: inline-block; border-radius: 0.25rem; padding: 0.2rem 0.5rem; margin-right: 0.4rem; font-size: 0.85rem; margin-bottom: 0.4rem; border: 1px solid; }
+.status-effect.buff { background-color: rgba(76, 175, 80, 0.2); border-color: var(--success-color); color: var(--success-color); }
+.status-effect.debuff { background-color: rgba(244, 67, 54, 0.2); border-color: var(--danger-color); color: var(--danger-color); }
+.status-effect.neutral { background-color: rgba(0, 188, 212, 0.2); border-color: var(--secondary-color); color: var(--secondary-color); }
+
+/* Keybinding Hint */
+.keybinding { display: inline-block; background-color: var(--border-color); color: var(--accent-color); padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.8rem; margin-left: 0.5rem; border: 1px solid rgba(255,235,59, 0.3); }
+
+/* Visual Effects (e.g., Damage Text) */
+.visual-effect { position: absolute; pointer-events: none; z-index: 999; }
+.damage-text { position: absolute; color: var(--danger-color); font-weight: bold; pointer-events: none; animation: floatUpAndFade 1.5s forwards; font-size: 1.2em; text-shadow: 1px 1px 2px black; }
+.heal-text { position: absolute; color: var(--success-color); font-weight: bold; pointer-events: none; animation: floatUpAndFade 1.5s forwards; font-size: 1.2em; text-shadow: 1px 1px 2px black; }
+@keyframes floatUpAndFade { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-30px) scale(0.8); } }
+
+/* Shimmer effect for special items/buttons */
+.shimmer-effect {
+    background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+}
+
+#setting-theme {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+body.light-theme #setting-theme {
+    background-color: #e0e0e0;
+    border-color: var(--border-color);
+} 
