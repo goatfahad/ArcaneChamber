@@ -106,9 +106,63 @@ const elements = {}; // Will be populated by cacheElements()
 // --- Initialization & Setup ---
 
 function initGame() {
-    // ... existing initGame ...
-    loadSettings(); // Load settings includes applying theme now
-    // ... rest of initGame ...
+    console.log("Initializing game..."); // Log start
+    try {
+        cacheElements(); // Cache elements first
+        if (!elements.gameContainer || !document.querySelector('.loading-screen')) {
+             console.error("Essential UI elements missing. Cannot initialize fully.");
+             // Display error on loading screen if possible
+             const loadingText = document.querySelector('.loading-text');
+             if(loadingText) loadingText.textContent = "Initialization Error: UI Missing";
+             return; // Stop initialization
+        }
+
+        initializeMap();
+        setupEventListeners();
+        gameState.achievements = JSON.parse(JSON.stringify(achievementTemplates));
+        loadSettings(); // Apply theme etc.
+
+        // --- Robust Loading Screen Hiding ---
+        const loadingScreen = document.querySelector('.loading-screen');
+        let loadingHidden = false; // Flag to prevent hiding twice
+
+        const hideLoadingScreen = () => {
+            if (loadingHidden) return;
+            loadingHidden = true;
+            loadingScreen.style.display = 'none';
+            elements.gameContainer.classList.add('visible'); // Show game container AFTER loading is hidden
+            console.log("Loading screen hidden.");
+        };
+
+        // Set opacity to start fade out
+        loadingScreen.style.opacity = '0';
+        console.log("Loading screen fade out initiated.");
+
+        // Listen for transition end
+        loadingScreen.addEventListener('transitionend', hideLoadingScreen, { once: true });
+
+        // Fallback timer: If transition doesn't end after 1 second, hide it anyway
+        setTimeout(() => {
+             console.log("Fallback timer triggered for hiding loading screen.");
+            hideLoadingScreen();
+        }, 1000); // 1 second fallback
+
+        checkForSavedGames();
+        console.log("Init game finished successfully.");
+
+    } catch (error) {
+        console.error("Error during game initialization:", error);
+        // Display error on loading screen
+        const loadingText = document.querySelector('.loading-text');
+        if(loadingText) {
+            loadingText.textContent = "Initialization Error!";
+            loadingText.style.color = "var(--danger-color)"; // Make error visible
+        }
+         // Optionally reveal a specific error div on the page
+         // document.getElementById('init-error-details').textContent = error.message;
+         // document.getElementById('init-error-display').style.display = 'block';
+    }
+    // NOTE: gameLoop is started by startGame(), not here.
 }
 
 function cacheElements() {
