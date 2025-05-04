@@ -106,16 +106,21 @@ const elements = {}; // Will be populated by cacheElements()
 // --- Initialization & Setup ---
 
 function initGame() {
-    console.log("Initializing game..."); // Log start
+    console.log("Initializing game...");
     try {
-        cacheElements(); // Cache elements first
-        if (!elements.gameContainer || !document.querySelector('.loading-screen')) {
-             console.error("Essential UI elements missing. Cannot initialize fully.");
-             // Display error on loading screen if possible
+        // Cache elements first and check success
+        if (!cacheElements()) {
+             // Error logged within cacheElements, maybe display general UI error message here
              const loadingText = document.querySelector('.loading-text');
-             if(loadingText) loadingText.textContent = "Initialization Error: UI Missing";
+             if(loadingText) {
+                 loadingText.textContent = "Initialization Error: UI Element Missing!";
+                 loadingText.style.color = "var(--danger-color)";
+             }
+             console.error("cacheElements failed. Stopping initialization.");
              return; // Stop initialization
         }
+
+        // --- Proceed only if caching was successful ---
 
         initializeMap();
         setupEventListeners();
@@ -123,54 +128,135 @@ function initGame() {
         loadSettings(); // Apply theme etc.
 
         // --- Robust Loading Screen Hiding ---
-        const loadingScreen = document.querySelector('.loading-screen');
-        let loadingHidden = false; // Flag to prevent hiding twice
+        const loadingScreen = elements.loadingScreen; // Use cached element
+        let loadingHidden = false;
 
         const hideLoadingScreen = () => {
             if (loadingHidden) return;
             loadingHidden = true;
             loadingScreen.style.display = 'none';
-            elements.gameContainer.classList.add('visible'); // Show game container AFTER loading is hidden
+            elements.gameContainer.classList.add('visible');
             console.log("Loading screen hidden.");
         };
 
-        // Set opacity to start fade out
         loadingScreen.style.opacity = '0';
         console.log("Loading screen fade out initiated.");
 
-        // Listen for transition end
         loadingScreen.addEventListener('transitionend', hideLoadingScreen, { once: true });
 
-        // Fallback timer: If transition doesn't end after 1 second, hide it anyway
         setTimeout(() => {
              console.log("Fallback timer triggered for hiding loading screen.");
             hideLoadingScreen();
-        }, 1000); // 1 second fallback
+        }, 1000);
 
         checkForSavedGames();
         console.log("Init game finished successfully.");
 
     } catch (error) {
         console.error("Error during game initialization:", error);
-        // Display error on loading screen
         const loadingText = document.querySelector('.loading-text');
         if(loadingText) {
             loadingText.textContent = "Initialization Error!";
-            loadingText.style.color = "var(--danger-color)"; // Make error visible
+            loadingText.style.color = "var(--danger-color)";
         }
-         // Optionally reveal a specific error div on the page
-         // document.getElementById('init-error-details').textContent = error.message;
-         // document.getElementById('init-error-display').style.display = 'block';
+         // Example: Display more details if you have a specific error div
+         // const errorDetails = document.getElementById('init-error-details');
+         // if(errorDetails) errorDetails.textContent = error.message + '\n' + error.stack;
     }
-    // NOTE: gameLoop is started by startGame(), not here.
 }
 
 function cacheElements() {
-     // ... existing cacheElements ...
+     console.log("Caching DOM elements...");
+     elements.loadingScreen = document.querySelector('.loading-screen'); // Cache loading screen first
+     console.log("Loading Screen Element:", elements.loadingScreen);
+
+     elements.gameContainer = document.getElementById('game-container');
+     console.log("Game Container Element:", elements.gameContainer);
+
+     // Check critical elements immediately
+     if (!elements.loadingScreen || !elements.gameContainer) {
+        console.error("CRITICAL ERROR: Loading screen or Game container not found during cache!");
+        // We can return false or throw an error here to signal failure
+        // throw new Error("Critical UI elements missing in cacheElements."); // Option 1: Throw error
+        return false; // Option 2: Return failure status
+     }
+
+     elements.startScreen = document.getElementById('start-screen');
+     elements.mainGame = document.getElementById('main-game');
+     elements.btnStartGame = document.getElementById('btn-start-game');
+     elements.chamberRoom = document.getElementById('chamber-room');
+     elements.chamberTitle = document.getElementById('chamber-title');
+     elements.chamberDescription = document.getElementById('chamber-description');
+     elements.chamberChoices = document.getElementById('chamber-choices');
+     elements.resourcesContainer = document.getElementById('resources-container');
+     elements.btnGatherMotes = document.getElementById('btn-gather-motes');
+     elements.btnChannelMana = document.getElementById('btn-channel-mana');
+     elements.eventLog = document.getElementById('event-log');
+     elements.mapContainer = document.getElementById('map-container');
+     elements.mapGrid = document.getElementById('map-grid');
+     elements.btnToggleMap = document.getElementById('btn-toggle-map');
+     elements.currentLocation = document.getElementById('current-location');
+     elements.locationDescription = document.getElementById('location-description');
+     elements.btnExplore = document.getElementById('btn-explore');
+     elements.btnReturnNexus = document.getElementById('btn-return-nexus');
+     elements.explorationEncounter = document.getElementById('exploration-encounter');
+     elements.combatEnemyContainer = document.getElementById('combat-enemy-container');
+     elements.combatLog = document.getElementById('combat-log');
+     elements.combatActions = document.getElementById('combat-actions');
+     elements.constructsContainer = document.getElementById('constructs-container');
+     elements.attunementContainer = document.getElementById('attunement-container');
+     elements.population = document.getElementById('population');
+     elements.maxPopulation = document.getElementById('max-population');
+     elements.populationBar = document.getElementById('population-bar');
+     elements.infusionContainer = document.getElementById('infusion-container');
+     elements.spellsContainer = document.getElementById('spells-container');
+     elements.researchContainer = document.getElementById('research-container');
+     elements.achievementsContainer = document.getElementById('achievements-container');
+     elements.saveSlots = document.getElementById('save-slots');
+     elements.loadSlots = document.getElementById('load-slots');
+
+     // Modals
+     elements.settingsModal = document.getElementById('settings-modal');
+     elements.saveModal = document.getElementById('save-modal');
+     elements.loadModal = document.getElementById('load-modal');
+     elements.achievementsModal = document.getElementById('achievements-modal');
+     elements.restartModal = document.getElementById('restart-modal');
+     elements.grimoireModal = document.getElementById('grimoire-modal');
+
      // Settings elements
-     elements.settingTheme = document.getElementById('setting-theme'); // Add theme select
+     elements.settingTheme = document.getElementById('setting-theme');
      elements.toggleSoundEffects = document.getElementById('toggle-sound-effects');
-     // ... rest of settings caches ...
+     elements.toggleMusic = document.getElementById('toggle-music');
+     elements.volumeSlider = document.getElementById('volume-slider');
+     elements.volumeValue = document.getElementById('volume-value');
+     elements.toggleHighContrast = document.getElementById('toggle-high-contrast');
+     elements.toggleScreenReader = document.getElementById('toggle-screen-reader');
+     elements.toggleVisualEffects = document.getElementById('toggle-visual-effects');
+     elements.toggleAutosave = document.getElementById('toggle-autosave');
+
+     // Sidebar elements
+     elements.sidebarToggle = document.getElementById('sidebar-toggle-btn');
+     elements.sidebar = document.getElementById('sidebar-menu');
+     elements.sidebarClose = document.getElementById('sidebar-close-btn');
+     elements.btnSaveGame = document.getElementById('btn-save-game');
+     elements.btnLoadGame = document.getElementById('btn-load-game');
+     elements.btnSettings = document.getElementById('btn-settings');
+     elements.btnAchievements = document.getElementById('btn-achievements');
+     elements.btnGrimoire = document.getElementById('btn-grimoire');
+     elements.btnRestart = document.getElementById('btn-restart');
+
+     // Tab elements
+     elements.tabButtons = document.querySelectorAll('.tab-button');
+     elements.tabContents = document.querySelectorAll('.tab-content');
+
+    // Close buttons for modals
+    elements.modalCloseButtons = document.querySelectorAll('[data-close-modal]');
+
+     // Specific action buttons in modals
+     elements.btnRestartConfirm = document.getElementById('btn-restart-confirm');
+
+     console.log("Finished caching elements.");
+     return true; // Signal success
 }
 
 function setupEventListeners() {
